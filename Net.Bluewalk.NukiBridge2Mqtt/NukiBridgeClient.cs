@@ -157,5 +157,35 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
 
             return Execute<RequestResult>(request);
         }
+
+        /// <summary>
+        /// Immediately checks for a new firmware update and installs it
+        /// </summary>
+        public void FwUpdate()
+        {
+            var request = new RestRequest("fwupdate");
+
+            Execute<RequestResult>(request);
+        }
+
+        /// <summary>
+        /// Reboots the bridge
+        /// </summary>
+        public void Reboot()
+        {
+            var request = new RestRequest("reboot");
+
+            Execute<RequestResult>(request);
+        }
+
+        /// <summary>
+        /// Performs a factory reset
+        /// </summary>
+        public void FactoryReset()
+        {
+            var request = new RestRequest("factoryReset");
+
+            Execute<RequestResult>(request);
+        }
     }
 }
