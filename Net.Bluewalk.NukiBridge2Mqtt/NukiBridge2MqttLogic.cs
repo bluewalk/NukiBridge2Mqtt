@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using log4net;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
+using RestSharp;
+using RestSharp.Serialization.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt
 {
@@ -20,10 +24,12 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
         private readonly string _mqttRootTopic;
 
         private readonly NukiBridgeClient _nukiBridgeClient;
+        private readonly HttpListener _httpListener;
+        private bool _stopHttpListener;
 
         private List<Lock> _locks;
 
-        public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, string bridgeUrl, string token)
+        public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, int callbackPort, string bridgeUrl, string token)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
             _mqttHost = mqttHost;
@@ -46,7 +52,62 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
 
             _nukiBridgeClient = new NukiBridgeClient(bridgeUrl, token);
 
+            _httpListener = new HttpListener()
+            {
+                Prefixes = { $"http://+:{callbackPort}/" }
+            };
+
             _locks = new List<Lock>();
+        }
+
+        public async void HttpListenAsync()
+        {
+            _httpListener.Start();
+
+            while (!_stopHttpListener)
+            {
+                HttpListenerContext ctx = null;
+                try
+                {
+                    ctx = await _httpListener.GetContextAsync();
+                }
+                catch (HttpListenerException ex)
+                {
+                    if (ex.ErrorCode == 995) return;
+                }
+
+                if (ctx == null) continue;
+
+                var request = ctx.Request;
+                string body;
+                using (var reader = new StreamReader(request.InputStream,
+                    request.ContentEncoding))
+                {
+                    body = reader.ReadToEnd();
+                }
+
+                try
+                {
+                    var callback = SimpleJson.DeserializeObject<CallbackBody>(body);
+
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    ctx.Response.Close();
+
+                    var @lock = _locks.FirstOrDefault(l => l.NukiId.Equals(callback.nukiId));
+                    if (@lock == null) return;
+
+                    @lock.LastKnownState.BatteryCritical = callback.batteryCritical;
+                    @lock.LastKnownState.State = (LockStateEnum) callback.state;
+                    @lock.LastKnownState.StateName = callback.stateName;
+                    await PublishLockStatus(@lock);
+                }
+                catch (Exception e)
+                {
+                    _log.Error($"An error occurred while parsing the callback: {body}", e);
+                    ctx.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                    ctx.Response.Close();
+                }
+            }
         }
 
         private void DiscoverLocks()
@@ -59,11 +120,15 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
         {
             SubscribeTopic($"{@lock.NukiId}/lock-action");
 
+            await PublishLockStatus(@lock);
+        }
+
+        public async Task PublishLockStatus(Lock @lock)
+        {
             await Publish($"{@lock.NukiId}/lock-state", @lock.LastKnownState.StateName);
             await Publish($"{@lock.NukiId}/name", @lock.Name);
             await Publish($"{@lock.NukiId}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
         }
-
         #region MQTT
 
         private async Task Publish(string topic, string message, bool retain = true)
@@ -167,11 +232,16 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
             _log.Info($"MQTT: Connecting to {_mqttHost}:{_mqttPort}");
             await _mqttClient.StartAsync(options);
 
+            _stopHttpListener = false;
+            HttpListenAsync();
+
             DiscoverLocks();
         }
 
         public async Task Stop()
         {
+            _stopHttpListener = true;
+            _httpListener.Stop();
             await _mqttClient?.StopAsync();
         }
     }

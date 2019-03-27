@@ -6,7 +6,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models
     public class LastKnownState
     {
         [SerializeAs(Name = "state")]
-        public LockStateEnum StateEnum { get; set; }
+        public LockStateEnum State { get; set; }
 
         [SerializeAs(Name = "stateName")]
         public string StateName { get; set; }
