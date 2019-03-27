@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RestSharp.Serializers;
+﻿using RestSharp.Deserializers;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class CallbackBody
     {
-        [SerializeAs(Name = "nukiId")]
-        public long NukiId { get; set; }
+        [DeserializeAs(Name = "nukiId")]
+        public int nukiId { get; set; }
 
-        [SerializeAs(Name = "state")]
-        public LockStateEnum State { get; set; }
+        [DeserializeAs(Name = "state")]
+        public int state { get; set; }
 
-        [SerializeAs(Name = "stateName")]
-        public string StateName { get; set; }
+        [DeserializeAs(Name = "stateName")]
+        public string stateName { get; set; }
 
-        [SerializeAs(Name = "batteryCritical")]
-        public bool BatteryCritical { get; set; }
+        [DeserializeAs(Name = "batteryCritical")]
+        public bool batteryCritical { get; set; }
     }
 }

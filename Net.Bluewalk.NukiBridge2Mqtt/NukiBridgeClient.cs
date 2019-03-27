@@ -35,13 +35,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
             request.RequestFormat = DataFormat.Json;
 
             // Generate token Hash
-            var tokenRnr = _random.Next(1000, 9999);
-            var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
-            var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSHA256();
+            //var tokenRnr = _random.Next(1000, 9999);
+            //var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
+            //var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSHA256();
 
-            request.AddQueryParameter("ts", tokenTimestamp);
-            request.AddQueryParameter("rnr", tokenRnr.ToString());
-            request.AddQueryParameter("hash", tokenHash);
+            //request.AddQueryParameter("ts", tokenTimestamp, false);
+            //request.AddQueryParameter("rnr", tokenRnr.ToString());
+            //request.AddQueryParameter("hash", tokenHash);
+            request.AddQueryParameter("token", _token);
 
             var response = client.Execute<T>(request);
 
