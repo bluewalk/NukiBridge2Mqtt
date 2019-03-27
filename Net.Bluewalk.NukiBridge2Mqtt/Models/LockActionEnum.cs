@@ -2,6 +2,7 @@
 {
     public enum LockActionEnum
     {
+        Unspecified = 0,
         Unlock = 1,
         Lock = 2,
         Unlatch = 3,
