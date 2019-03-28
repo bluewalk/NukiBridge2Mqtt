@@ -73,8 +73,8 @@
     <Compile Include="Models\LockStateEnum.cs" />
     <Compile Include="Models\RequestResult.cs" />
     <Compile Include="Models\ScanResult.cs" />
-    <Compile Include="NukiBridge2MqttLogic.cs" />
-    <Compile Include="NukiBridgeClient.cs" />
+    <Compile Include="Logic\NukiBridge2MqttLogic.cs" />
+    <Compile Include="Logic\NukiBridgeClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

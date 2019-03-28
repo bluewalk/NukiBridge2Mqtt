@@ -1,11 +1,12 @@
-﻿using Net.Bluewalk.NukiBridge2Mqtt.Models;
+﻿using log4net;
+using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Web;
 
-namespace Net.Bluewalk.NukiBridge2Mqtt
+namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     /// <summary>
     /// Implementation of https://developer.nuki.io/page/nuki-bridge-http-api-180/4/
@@ -14,7 +15,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
     {
         private readonly string _baseUrl;
         private readonly string _token;
-        private readonly Random _random;
+        //private readonly Random _random;
+        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
 
         public WebProxy Proxy { get; set; }
 
@@ -22,7 +24,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
         {
             _baseUrl = baseUrl;
             _token = token;
-            _random = new Random();
+            //_random = new Random();
         }
 
         public T Execute<T>(RestRequest request) where T : new()
@@ -43,6 +45,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
             //request.AddQueryParameter("rnr", tokenRnr.ToString());
             //request.AddQueryParameter("hash", tokenHash);
             request.AddQueryParameter("token", _token);
+
+            _log.Info($"Performing {request.Method} request to {request.Resource}");
 
             var response = client.Execute<T>(request);
 
@@ -127,10 +131,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
         /// </summary>
         /// <param name="url"></param>
         /// <returns>RequestResult</returns>
-        public RequestResult AddCallback(string url)
+        public RequestResult AddCallback(Uri url)
         {
             var request = new RestRequest("callback/add");
-            request.AddQueryParameter("url", HttpUtility.UrlEncode(url));
+            request.AddQueryParameter("url", HttpUtility.UrlEncode(url.ToString()));
 
             return Execute<RequestResult>(request);
         }
