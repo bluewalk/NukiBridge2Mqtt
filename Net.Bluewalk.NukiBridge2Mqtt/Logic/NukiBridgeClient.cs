@@ -4,7 +4,6 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Web;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -135,7 +134,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         public RequestResult AddCallback(Uri url)
         {
             var request = new RestRequest("callback/add");
-            request.AddQueryParameter("url", HttpUtility.UrlEncode(url.ToString()));
+            request.AddQueryParameter("url", url.ToString());
 
             return Execute<RequestResult>(request);
         }
