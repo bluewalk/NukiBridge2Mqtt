@@ -9,7 +9,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt
 {
     public static class Extensions
     {
-        public static string ToSHA256(this string value)
+        public static string ToSha256(this string value)
         {
             using (var hash = SHA256.Create())
             {
