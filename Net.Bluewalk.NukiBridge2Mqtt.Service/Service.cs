@@ -5,9 +5,12 @@ using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
@@ -80,10 +83,15 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
             if (!int.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Port"], out var callbackPort))
                 callbackPort = 8080;
 
+            if (!IPAddress.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Address"],
+                out var callbackAddress))
+                callbackAddress = LocalIPAddress();
+
             _logic = new NukiBridge2MqttLogic(
                 ConfigurationManager.AppSettings["MQTT_Host"],
                 mqttPort,
                 ConfigurationManager.AppSettings["MQTT_RootTopic"],
+                callbackAddress,
                 callbackPort,
                 ConfigurationManager.AppSettings["Bridge_URL"],
                 ConfigurationManager.AppSettings["Bridge_Token"]
@@ -95,6 +103,20 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
         protected override async void OnStop()
         {
             await _logic.Stop();
+        }
+
+        private IPAddress LocalIPAddress()
+        {
+            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                return null;
+            }
+
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 }
