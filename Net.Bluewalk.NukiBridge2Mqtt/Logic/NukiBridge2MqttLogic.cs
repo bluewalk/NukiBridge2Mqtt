@@ -89,6 +89,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
                 if (ctx == null) continue;
 
+                _log.Info("Received callback from Brigde");
+
                 var request = ctx.Request;
                 string body;
                 using (var reader = new StreamReader(request.InputStream,
@@ -96,6 +98,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 {
                     body = reader.ReadToEnd();
                 }
+
+                _log.Debug(body);
 
                 try
                 {
