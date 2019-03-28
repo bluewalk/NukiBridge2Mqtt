@@ -75,7 +75,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
             _log.Info("Starting service");
 
             if (!int.TryParse(ConfigurationManager.AppSettings["MQTT_Port"], out var mqttPort))
-                mqttPort = 1833;
+                mqttPort = 1883;
 
             if (!int.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Port"], out var callbackPort))
                 callbackPort = 8080;

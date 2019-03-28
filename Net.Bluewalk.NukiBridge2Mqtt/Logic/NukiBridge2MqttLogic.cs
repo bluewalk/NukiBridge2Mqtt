@@ -57,7 +57,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _callbackPort = callbackPort;
             _httpListener = new HttpListener
             {
-                Prefixes = { $"http://{callbackAddress}:{callbackPort}/" }
+                Prefixes = { $"http://+:{callbackPort}/" }
             };
 
             _locks = new List<Lock>();
@@ -284,6 +284,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _stopHttpListener = false;
             HttpListenAsync();
 
+            InitializeCallback();
             DiscoverLocks();
         }
 
