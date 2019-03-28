@@ -65,7 +65,15 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
         public async void HttpListenAsync()
         {
-            _httpListener.Start();
+            try
+            {
+                _httpListener.Start();
+            }
+            catch (Exception e)
+            {
+                _log.Error("An error occurred wen starting the callback listener", e);
+                return;
+            }
 
             while (!_stopHttpListener)
             {
@@ -117,21 +125,36 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         {
             _log.Info("Discovering locks on bridge");
 
-            _locks = _nukiBridgeClient.List();
-            _locks?.ForEach(async l => await PrepareLock(l));
+            try
+            {
+                _locks = _nukiBridgeClient.List();
+                _locks?.ForEach(async l => await PrepareLock(l));
+            }
+            catch (ApplicationException e)
+            {
+                _log.Error(e.Message, e);
+            }
         }
 
         private void InitializeCallback()
         {
             _log.Info("Requesting registered callbacks");
-            var callbacks = _nukiBridgeClient.ListCallbacks().Callbacks;
-            var callback = new Uri($"http://{_callbackAddress}:{_callbackPort}/");
-
-            _log.Info("Checking if callback is registered");
-            if (!callbacks.Any(c => c.Url.Equals(callback)))
+            try
             {
-                _log.Info($"Not registered, registering {callback}");
-                _nukiBridgeClient.AddCallback(callback);
+                var callbacks = _nukiBridgeClient.ListCallbacks().Callbacks;
+                var callback = new Uri($"http://{_callbackAddress}:{_callbackPort}/");
+
+                _log.Info("Checking if callback is registered");
+
+                if (!callbacks.Any(c => c.Url.Equals(callback)))
+                {
+                    _log.Info($"Not registered, registering {callback}");
+                    _nukiBridgeClient.AddCallback(callback);
+                }
+            }
+            catch (ApplicationException e)
+            {
+                _log.Error(e.Message, e);
             }
         }
 
@@ -239,7 +262,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
             catch (Exception ex)
             {
-                _log.Error($"An error occurred parsing the MQTT message (Topic {e.ApplicationMessage.Topic}, Message: {message}", ex);
+                _log.Error($"An error occurred processing the MQTT message (Topic {e.ApplicationMessage.Topic}, Message: {message}", ex);
             }
         }
 

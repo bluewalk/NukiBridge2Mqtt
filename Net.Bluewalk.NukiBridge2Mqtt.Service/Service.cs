@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using log4net;
+using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 using System.Configuration;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
-using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
     public partial class Service : ServiceBase
     {
+        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
         private NukiBridge2MqttLogic _logic;
 
         public Service()
@@ -77,6 +72,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
         protected override async void OnStart(string[] args)
         {
+            _log.Info("Starting service");
+
             if (!int.TryParse(ConfigurationManager.AppSettings["MQTT_Port"], out var mqttPort))
                 mqttPort = 1833;
 
@@ -102,6 +99,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
         protected override async void OnStop()
         {
+            _log.Info("Stopping service");
             await _logic.Stop();
         }
 
