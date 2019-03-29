@@ -112,7 +112,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
                 return null;
             }
 
-            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            var host = Dns.GetHostEntry(Dns.GetHostName());
 
             return host
                 .AddressList
