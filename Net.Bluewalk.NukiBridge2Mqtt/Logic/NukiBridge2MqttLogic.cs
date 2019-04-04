@@ -167,6 +167,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _log.Info($"Processing lock {@lock.NukiId}");
 
             SubscribeTopic($"{@lock.NukiId}/lock-action");
+            SubscribeTopic($"{@lock.NameMqtt}/lock-action");
 
             await PublishLockStatus(@lock);
         }
@@ -174,8 +175,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         public async Task PublishLockStatus(Lock @lock)
         {
             await Publish($"{@lock.NukiId}/lock-state", @lock.LastKnownState.StateName);
-            await Publish($"{@lock.NukiId}/name", @lock.Name);
+            await Publish($"{@lock.NameMqtt}/lock-state", @lock.LastKnownState.StateName);
             await Publish($"{@lock.NukiId}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
+            await Publish($"{@lock.NameMqtt}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
         }
 
         #region MQTT
@@ -248,7 +250,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                         break;
 
                     default:
-                        var @lock = _locks.FirstOrDefault(l => l.NukiId.ToString().Equals(topic[1]));
+                        var @lock = _locks.FirstOrDefault(l =>
+                            l.NukiId.ToString().Equals(topic[1]) || l.NameMqtt.Equals(topic[1].ToLower()));
                         if (@lock == null) return;
 
                         switch (topic[2])
