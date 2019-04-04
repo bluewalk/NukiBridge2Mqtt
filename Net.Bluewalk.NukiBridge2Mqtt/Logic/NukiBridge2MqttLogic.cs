@@ -30,7 +30,18 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
         private List<Lock> _locks;
 
-        public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, IPAddress callbackAddress, int callbackPort, string bridgeUrl, string token)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="mqttHost"></param>
+        /// <param name="mqttPort"></param>
+        /// <param name="mqttRootTopic"></param>
+        /// <param name="callbackAddress"></param>
+        /// <param name="callbackPort"></param>
+        /// <param name="bridgeUrl"></param>
+        /// <param name="token"></param>
+        public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, IPAddress callbackAddress,
+            int callbackPort, string bridgeUrl, string token)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
             _mqttHost = mqttHost;
@@ -63,6 +74,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _locks = new List<Lock>();
         }
 
+        /// <summary>
+        /// Starts the callback listener
+        /// </summary>
         public async void HttpListenAsync()
         {
             try
@@ -125,6 +139,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
         }
 
+        /// <summary>
+        /// Discover locks connected to the bridge
+        /// </summary>
         private void DiscoverLocks()
         {
             _log.Info("Discovering locks on bridge");
@@ -140,21 +157,25 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
         }
 
+        /// <summary>
+        /// Initialize the callback to our listener
+        /// </summary>
         private void InitializeCallback()
         {
             _log.Info("Requesting registered callbacks");
             try
             {
                 var callbacks = _nukiBridgeClient.ListCallbacks().Callbacks;
+                callbacks.ForEach(c => _log.Info($"Registered callback #{c.Id}: {c.Url}"));
+
                 var callback = new Uri($"http://{_callbackAddress}:{_callbackPort}/");
 
-                _log.Info("Checking if callback is registered");
+                _log.Info($"Checking if callback to {callback} has already been registered");
 
-                if (!callbacks.Any(c => c.Url.Equals(callback)))
-                {
-                    _log.Info($"Not registered, registering {callback}");
-                    _nukiBridgeClient.AddCallback(callback);
-                }
+                if (callbacks.Any(c => c.Url.Equals(callback))) return;
+
+                _log.Info($"Not registered, registering {callback}");
+                _nukiBridgeClient.AddCallback(callback);
             }
             catch (ApplicationException e)
             {
@@ -162,26 +183,45 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
         }
 
+        /// <summary>
+        /// Prepare lock (MQTT subscriptions etc)
+        /// </summary>
+        /// <param name="lock"></param>
+        /// <returns></returns>
         private async Task PrepareLock(Lock @lock)
         {
             _log.Info($"Processing lock {@lock.NukiId}");
 
-            SubscribeTopic($"{@lock.NukiId}/lock-action");
-            SubscribeTopic($"{@lock.NameMqtt}/lock-action");
+            SubscribeTopic(
+                $"{@lock.NukiId}/lock-action",
+                $"{@lock.NameMqtt}/lock-action");
 
             await PublishLockStatus(@lock);
         }
 
+        /// <summary>
+        /// Publishes the lock status to the appropriate topics
+        /// </summary>
+        /// <param name="lock"></param>
+        /// <returns></returns>
         public async Task PublishLockStatus(Lock @lock)
         {
             await Publish($"{@lock.NukiId}/lock-state", @lock.LastKnownState.StateName);
             await Publish($"{@lock.NameMqtt}/lock-state", @lock.LastKnownState.StateName);
+
             await Publish($"{@lock.NukiId}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
             await Publish($"{@lock.NameMqtt}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
         }
 
         #region MQTT
 
+        /// <summary>
+        /// Publish a message to an MQTT topic
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="message"></param>
+        /// <param name="retain"></param>
+        /// <returns></returns>
         private async Task Publish(string topic, string message, bool retain = true)
         {
             if (_mqttClient == null || !_mqttClient.IsConnected) return;
@@ -190,30 +230,42 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             topic = $"dev/{topic}";
 #endif
             _log.Info($"MQTT: Publishing message to {topic}");
-            _log.Debug($"Message: {message}");
+            _log.Debug($"MQTT: Message: {message}");
 
             var msg = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(message)
                 .WithExactlyOnceQoS()
-                .WithRetainFlag()
+                .WithRetainFlag(retain)
                 .Build();
 
             await _mqttClient.PublishAsync(msg);
         }
 
-        private async void SubscribeTopic(string topic)
+        /// <summary>
+        /// Subscribe to given topics
+        /// </summary>
+        /// <param name="topics"></param>
+        private void SubscribeTopic(params string[] topics)
         {
-            topic = $"{_mqttRootTopic}/{topic}";
+            topics.ToList().ForEach(async topic =>
+            {
+                topic = $"{_mqttRootTopic}/{topic}";
 
 #if DEBUG
-            topic = $"dev/{topic}";
+                topic = $"dev/{_mqttRootTopic}/{topic}";
 #endif
-            _log.Info($"MQTT: Subscribing to {topic}");
+                _log.Info($"MQTT: Subscribing to {topic}");
 
-            await _mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
+                await _mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
+            });
         }
 
+        /// <summary>
+        /// MQTT message handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MqttClientOnApplicationMessageReceived(object sender, MqttApplicationMessageReceivedEventArgs e)
         {
             var topic = e.ApplicationMessage.Topic.ToUpper().Split('/');
@@ -246,12 +298,13 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                         _nukiBridgeClient.FwUpdate();
                         break;
                     case "CALLBACKS":
-                        _nukiBridgeClient.ListCallbacks()?.Callbacks.ForEach(c => _log.Info($"Callback: #{c.Id} {c.Url}"));
+                        InitializeCallback();
                         break;
 
                     default:
                         var @lock = _locks.FirstOrDefault(l =>
-                            l.NukiId.ToString().Equals(topic[1]) || l.NameMqtt.Equals(topic[1].ToLower()));
+                            l.NukiId.ToString().Equals(topic[1]) || l.NameMqtt.Equals(topic[1],
+                                StringComparison.InvariantCultureIgnoreCase));
                         if (@lock == null) return;
 
                         switch (topic[2])
@@ -261,6 +314,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                                 if (action == LockActionEnum.Unspecified) return;
 
                                 _nukiBridgeClient.LockAction(@lock.NukiId, action);
+                                break;
+
+                            default:
+                                _log.Warn($"MQTT: {topic[2]} is not a valid lock topic");
                                 break;
                         }
 
@@ -275,6 +332,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
         #endregion
 
+        /// <summary>
+        /// Start logic
+        /// </summary>
+        /// <returns></returns>
         public async Task Start()
         {
             var options = new ManagedMqttClientOptionsBuilder()
@@ -295,11 +356,16 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             DiscoverLocks();
         }
 
+        /// <summary>
+        /// Stop logic
+        /// </summary>
+        /// <returns></returns>
         public async Task Stop()
         {
             _stopHttpListener = true;
             _httpListener.Stop();
-            await _mqttClient?.StopAsync();
+
+            await _mqttClient.StopAsync();
         }
     }
 }
