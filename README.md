@@ -37,6 +37,21 @@ Edit the `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config` file and set the foll
 | Bridge_URL | Url of your bridge (http://xxx.xxx.xxx:port) | - |
 | Bridge_Token | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
 
+** If you don't know the address of your bridge you can find it via `https://api.nuki.io/discover/bridges`, response would be something like:
+```json
+{
+    "bridges": [{
+        "bridgeId": 2117604523,
+        "ip": "192.168.1.50",
+        "port": 8080,
+        "dateUpdated": "2017-06-14 T06:53:44Z"
+    }],
+    "errorCode": 0
+}
+```
+You can see the `ip` and `port` in the response, enter as `http://ip:port` in the configuration file.
+> Calling the URL https://api.nuki.io/discover/bridges returns a JSON array with all bridges which have been connected to the Nuki Servers through the same IP address than the one calling the URL within the last 30 days. The array contains the local IP address, port, the ID of each bridge and the date of the last change of the entry in the JSON array.
+
 ## Starting/stopping
 Go to services.msc to start/stop the `Bluewalk NukiBridge2Mqtt` service or run `net start BluewalkNukiBridge2Mqtt` or `net stop BluewalkNukiBridge2Mqtt`
 
@@ -53,10 +68,12 @@ ___!NOTE: Prepend the root-topic if provided in the config, by default `nukibrid
 | reboot | write | `true` to reboot the bridge |
 | fw-upgrade | write | `true` to immediately check for firmware updates and install it |
 | callbacks | write | `true` to query all registered callbacks and log these to the logfile |
-| {lockId}/lock-state | readonly | Contains the current lock state (`Locked`, `Unlocking`, `Unlocked`, `Locking`, `Unlatched`, `UnlockedLockNGo`, `Unlatching`, `MotorBlocked`, `Undefined`) |
-| {lockId}/name | readonly | The name of the lock |
-| {lockId}/battery-critical | readonly | `True` or `False` if the battery level is critical |
-| {lockId}/lock-action | write | Performs an action on the lock (`Unlock`, `Lock`, `Unlatch`, `LockNGo`, `LockNGoWithUnlatch`)
+| {lockId}/lock-state `OR` {lockName}/lock-state | readonly | Contains the current lock state (`Locked`, `Unlocking`, `Unlocked`, `Locking`, `Unlatched`, `UnlockedLockNGo`, `Unlatching`, `MotorBlocked`, `Undefined`) |
+| 
+| {lockId}/battery-critical `OR` {lockName}/battery-critical | readonly | `True` or `False` if the battery level is critical |
+| {lockId}/lock-action `OR` {lockName}/lock-action | write | Performs an action on the lock (`Unlock`, `Lock`, `Unlatch`, `LockNGo`, `LockNGoWithUnlatch`)
+
+** Lock name is automatically generated based on the actual Lock Name, eg. `Front door` becomes `front-door`
 
 ## Log
 The service will automatically create a log file under the directory of the service.
