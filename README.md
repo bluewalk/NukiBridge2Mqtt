@@ -23,7 +23,9 @@ Edit the `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config` file and set the foll
     <!-- Url of your bridge (http://xxx.xxx.xxx:port) -->
     <add key="Bridge_URL" value="http://192.168.1.10:8080" />
     <!-- Token to utilize the Nuki Bridge API -->
-    <add key="Bridge_Token" value="" />
+    <add key="Bridge_Token" value="" />     
+    <!-- Use hashed token instead of plain token (true when left empty) -->
+    <add key="Bridge_HashToken" value=""/>
   </appSettings>
   ```
 
@@ -36,7 +38,7 @@ Edit the `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config` file and set the foll
 | Bridge_Callback_Port | Port for the Nuki Bridge callbacks | `8080` |
 | Bridge_URL | Url of your bridge (http://xxx.xxx.xxx:port) | - |
 | Bridge_Token | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
-
+| Bridge_HashToken | Hash the token on requests to ensure safety | true |
 ** If you don't know the address of your bridge you can find it via `https://api.nuki.io/discover/bridges`, response would be something like:
 ```json
 {

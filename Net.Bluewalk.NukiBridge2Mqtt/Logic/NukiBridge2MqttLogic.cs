@@ -40,8 +40,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="callbackPort"></param>
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
+        /// <param name="hashToken"></param>
         public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, IPAddress callbackAddress,
-            int callbackPort, string bridgeUrl, string token)
+            int callbackPort, string bridgeUrl, string token, bool hashToken)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
             _mqttHost = mqttHost;
@@ -62,7 +63,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 _log.Error($"MQTT: Unable to connect ({args.Exception.Message})");
             _mqttClient.Disconnected += (sender, args) => _log.Warn("MQTT: Disconnected");
 
-            _nukiBridgeClient = new NukiBridgeClient(bridgeUrl, token);
+            _nukiBridgeClient = new NukiBridgeClient(bridgeUrl, token, hashToken);
 
             _callbackAddress = callbackAddress;
             _callbackPort = callbackPort;

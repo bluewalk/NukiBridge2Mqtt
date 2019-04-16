@@ -14,16 +14,18 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
     {
         private readonly string _baseUrl;
         private readonly string _token;
-        //private readonly Random _random;
+        private readonly bool _hashToken;
+        private readonly Random _random;
         private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
 
         public WebProxy Proxy { get; set; }
 
-        public NukiBridgeClient(string baseUrl, string token)
+        public NukiBridgeClient(string baseUrl, string token, bool hashToken)
         {
             _baseUrl = baseUrl;
             _token = token;
-            //_random = new Random();
+            _hashToken = hashToken;
+            _random = new Random();
         }
 
         public T Execute<T>(RestRequest request) where T : new()
@@ -35,17 +37,20 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             request.RequestFormat = DataFormat.Json;
 
-            // Generate token Hash
-            //var tokenRnr = _random.Next(1000, 9999);
-            //var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
-            //var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSha256();
+            if (_hashToken)
+            {
+                var tokenRnr = _random.Next(1000, 9999);
+                var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
+                var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSha256();
 
-            //request.AddQueryParameter("ts", tokenTimestamp, false);
-            //request.AddQueryParameter("rnr", tokenRnr.ToString());
-            //request.AddQueryParameter("hash", tokenHash);
-            request.AddQueryParameter("token", _token);
+                request.AddQueryParameter("ts", tokenTimestamp, false);
+                request.AddQueryParameter("rnr", tokenRnr.ToString());
+                request.AddQueryParameter("hash", tokenHash);
+            }
+            else
+                request.AddQueryParameter("token", _token);
 
-            _log.Debug($"Performing {request.Method} request to {request.Resource}");
+            _log.Debug($"Performing {request.Method} request to {client.BuildUri(request)}");
 
             var response = client.Execute<T>(request);
 
