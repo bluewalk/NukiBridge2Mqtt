@@ -86,6 +86,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
                 out var callbackAddress))
                 callbackAddress = LocalIPAddress();
 
+            if (!bool.TryParse(ConfigurationManager.AppSettings["Bridge_HashToken"], out var hashToken))
+                hashToken = true;
+
             _logic = new NukiBridge2MqttLogic(
                 ConfigurationManager.AppSettings["MQTT_Host"],
                 mqttPort,
@@ -93,7 +96,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
                 callbackAddress,
                 callbackPort,
                 ConfigurationManager.AppSettings["Bridge_URL"],
-                ConfigurationManager.AppSettings["Bridge_Token"]
+                ConfigurationManager.AppSettings["Bridge_Token"],
+                hashToken
             );
 
             await _logic.Start();
