@@ -68,6 +68,8 @@
     <Compile Include="Models\Callback.cs" />
     <Compile Include="Models\CallbackBody.cs" />
     <Compile Include="Models\CallbackList.cs" />
+    <Compile Include="Models\DiscoverBridge.cs" />
+    <Compile Include="Models\DiscoverResult.cs" />
     <Compile Include="Models\Lock.cs" />
     <Compile Include="Models\LastKnownState.cs" />
     <Compile Include="Models\LockActionEnum.cs" />

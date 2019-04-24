@@ -20,8 +20,8 @@ Edit the `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config` file and set the foll
     <add key="Bridge_Callback_Address" value="" />
     <!-- Port for the Nuki Bridge callbacks (8080 when left empty) -->
     <add key="Bridge_Callback_Port" value="" />
-    <!-- Url of your bridge (http://xxx.xxx.xxx:port) -->
-    <add key="Bridge_URL" value="http://192.168.1.10:8080" />
+    <!-- Url of your bridge (http://xxx.xxx.xxx:port, leave empty for auto discovery) -->
+    <add key="Bridge_URL" value="" />
     <!-- Token to utilize the Nuki Bridge API -->
     <add key="Bridge_Token" value="" />     
     <!-- Use hashed token instead of plain token (true when left empty) -->
@@ -36,24 +36,9 @@ Edit the `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config` file and set the foll
 | MQTT_RootTopic | This text will be prepended to the MQTT Topic | `nukibridge` |
 | Bridge_Callback_Address | IP Address for the Nuki Bridge callbacks | Auto detection |
 | Bridge_Callback_Port | Port for the Nuki Bridge callbacks | `8080` |
-| Bridge_URL | Url of your bridge (http://xxx.xxx.xxx:port) | - |
+| Bridge_URL | Url of your bridge (http://xxx.xxx.xxx:port) | Auto discovery |
 | Bridge_Token | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
 | Bridge_HashToken | Hash the token on requests to ensure safety | true |
-
-** If you don't know the address of your bridge you can find it via `https://api.nuki.io/discover/bridges`, response would be something like:
-```json
-{
-    "bridges": [{
-        "bridgeId": 2117604523,
-        "ip": "192.168.1.50",
-        "port": 8080,
-        "dateUpdated": "2017-06-14 T06:53:44Z"
-    }],
-    "errorCode": 0
-}
-```
-You can see the `ip` and `port` in the response, enter as `http://ip:port` in the configuration file.
-> Calling the URL https://api.nuki.io/discover/bridges returns a JSON array with all bridges which have been connected to the Nuki Servers through the same IP address than the one calling the URL within the last 30 days. The array contains the local IP address, port, the ID of each bridge and the date of the last change of the entry in the JSON array.
 
 ## Starting/stopping
 Go to services.msc to start/stop the `Bluewalk NukiBridge2Mqtt` service or run `net start BluewalkNukiBridge2Mqtt` or `net stop BluewalkNukiBridge2Mqtt`

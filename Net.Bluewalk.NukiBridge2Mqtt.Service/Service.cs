@@ -84,10 +84,21 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
             if (!IPAddress.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Address"],
                 out var callbackAddress))
-                callbackAddress = LocalIPAddress();
+                callbackAddress = LocalIpAddress();
 
             if (!bool.TryParse(ConfigurationManager.AppSettings["Bridge_HashToken"], out var hashToken))
                 hashToken = true;
+
+            var bridgeUrl = ConfigurationManager.AppSettings["Bridge_URL"];
+            if (string.IsNullOrEmpty(bridgeUrl))
+                bridgeUrl = NukiBridgeClient.DiscoverBridge();
+
+            if (string.IsNullOrEmpty(bridgeUrl) ||
+                string.IsNullOrEmpty(ConfigurationManager.AppSettings["Bridge_Token"]))
+            {
+                _log.Fatal("No Bridge_URL and/or Bridge_Token defined");
+                return;
+            }
 
             _logic = new NukiBridge2MqttLogic(
                 ConfigurationManager.AppSettings["MQTT_Host"],
@@ -95,7 +106,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
                 ConfigurationManager.AppSettings["MQTT_RootTopic"],
                 callbackAddress,
                 callbackPort,
-                ConfigurationManager.AppSettings["Bridge_URL"],
+                bridgeUrl,
                 ConfigurationManager.AppSettings["Bridge_Token"],
                 hashToken
             );
@@ -106,15 +117,13 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
         protected override async void OnStop()
         {
             _log.Info("Stopping service");
-            await _logic.Stop();
+            await _logic?.Stop();
         }
 
-        private IPAddress LocalIPAddress()
+        private static IPAddress LocalIpAddress()
         {
             if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-            {
                 return null;
-            }
 
             var host = Dns.GetHostEntry(Dns.GetHostName());
 

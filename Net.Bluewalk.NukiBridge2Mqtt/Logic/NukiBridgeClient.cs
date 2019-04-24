@@ -3,6 +3,7 @@ using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Polly;
 using Polly.Retry;
@@ -31,13 +32,35 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _random = new Random();
 
             _retryPolicy = Policy.Handle<ApplicationException>()
-                .WaitAndRetry(5, 
-                    retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt), 
+                .WaitAndRetry(5,
+                    retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt),
                     (exception, timeSpan, retryCount, context) =>
                 {
                     _log.Error($"{context["methodName"]} caused exception", exception);
                     _log.Info($"Retrying (count {retryCount}) ...");
                 });
+        }
+
+        public static string DiscoverBridge(WebProxy proxy = null)
+        {
+            var client = new RestClient("https://api.nuki.io/");
+            if (proxy != null)
+                client.Proxy = proxy;
+
+            var request = new RestRequest("discover/bridges")
+            {
+                RequestFormat = DataFormat.Json
+            };
+
+            var response = client.Execute<DiscoverResult>(request);
+            if (response.ErrorException != null)
+                throw new ApplicationException("Error retrieving response. Check inner details for more info.",
+                    response.ErrorException);
+
+            var bridge = response.Data.Bridges.FirstOrDefault();
+            if (bridge == null || bridge.Ip.Equals("0.0.0.0")) return null;
+
+            return $"http://{bridge.Ip}:{bridge.Port}";
         }
 
         public T Execute<T>(RestRequest request) where T : new()
