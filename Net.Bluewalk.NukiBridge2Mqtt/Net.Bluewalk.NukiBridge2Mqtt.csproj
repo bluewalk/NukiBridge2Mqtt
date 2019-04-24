@@ -39,6 +39,9 @@
     <Reference Include="MQTTnet.Extensions.ManagedClient, Version=2.8.5.0, Culture=neutral, PublicKeyToken=b69712f52770c0a7, processorArchitecture=MSIL">
       <HintPath>..\packages\MQTTnet.Extensions.ManagedClient.2.8.5\lib\net470\MQTTnet.Extensions.ManagedClient.dll</HintPath>
     </Reference>
+    <Reference Include="Polly, Version=7.0.0.0, Culture=neutral, PublicKeyToken=c8a3ffc3f8f825cc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Polly.7.1.0\lib\netstandard2.0\Polly.dll</HintPath>
+    </Reference>
     <Reference Include="RestSharp, Version=106.6.9.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.106.6.9\lib\net452\RestSharp.dll</HintPath>
     </Reference>
