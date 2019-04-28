@@ -36,7 +36,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt),
                     (exception, timeSpan, retryCount, context) =>
                 {
-                    _log.Error($"{context["methodName"]} caused exception", exception);
+                    _log.Error("Request failed,", exception);
                     _log.Info($"Retrying (count {retryCount}) ...");
                 });
         }
