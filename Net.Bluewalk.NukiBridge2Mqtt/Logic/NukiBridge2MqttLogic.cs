@@ -16,7 +16,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     public class NukiBridge2MqttLogic
     {
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
+        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridge2MqttLogic));
 
         private readonly IManagedMqttClient _mqttClient;
         private readonly string _mqttHost;

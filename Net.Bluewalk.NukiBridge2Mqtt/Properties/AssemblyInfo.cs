@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -8,5 +7,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Net.Bluewalk.NukiBridge2Mqtt")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("dee2ff32-4b6c-47e0-9e7b-f1b6a8ae7df9")]
-
+[assembly: Guid("b98c6cf0-cdae-4cd9-b69a-83ee4d898c28")]
