@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using MQTTnet.Client.Options;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -49,8 +50,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _mqttPort = mqttPort;
 
             _mqttClient = new MqttFactory().CreateManagedMqttClient();
-            _mqttClient.ApplicationMessageReceived += MqttClientOnApplicationMessageReceived;
-            _mqttClient.Connected += (sender, args) =>
+            _mqttClient.UseApplicationMessageReceivedHandler(MqttClientOnApplicationMessageReceived);
+            _mqttClient.UseConnectedHandler(e =>
             {
                 _log.Info("MQTT: Connected");
 
@@ -58,10 +59,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 SubscribeTopic("reset");
                 SubscribeTopic("reboot");
                 SubscribeTopic("fw-upgrade");
-            };
-            _mqttClient.ConnectingFailed += (sender, args) =>
-                _log.Error($"MQTT: Unable to connect ({args.Exception.Message})");
-            _mqttClient.Disconnected += (sender, args) => _log.Warn("MQTT: Disconnected");
+            });
+            _mqttClient.UseDisconnectedHandler(e =>
+            {
+                if (e.ClientWasConnected)
+                    _log.Warn($"MQTT: Disconnected ({e.Exception?.Message ?? "..."})");
+                else
+                    _log.Error($"MQTT: Unable to connect ({e.Exception?.Message ?? "..."})");
+            });
 
             _nukiBridgeClient = new NukiBridgeClient(bridgeUrl, token, hashToken);
 
@@ -267,7 +272,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MqttClientOnApplicationMessageReceived(object sender, MqttApplicationMessageReceivedEventArgs e)
+        private void MqttClientOnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
         {
             var topic = e.ApplicationMessage.Topic.ToUpper().Split('/');
             var message = e.ApplicationMessage.ConvertPayloadToString();
