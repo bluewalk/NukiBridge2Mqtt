@@ -1,6 +1,5 @@
 ﻿using log4net;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
