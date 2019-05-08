@@ -3,7 +3,10 @@ using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using Polly;
+using Polly.Retry;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -16,7 +19,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private readonly string _token;
         private readonly bool _hashToken;
         private readonly Random _random;
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
+        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridgeClient));
+        private readonly RetryPolicy _retryPolicy;
 
         public WebProxy Proxy { get; set; }
 
@@ -26,40 +30,75 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _token = token;
             _hashToken = hashToken;
             _random = new Random();
+
+            _retryPolicy = Policy.Handle<ApplicationException>()
+                .WaitAndRetry(5,
+                    retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt),
+                    (exception, timeSpan, retryCount, context) =>
+                {
+                    _log.Error("Request failed,", exception);
+                    _log.Info($"Retrying (count {retryCount}) ...");
+                });
+        }
+
+        public static string DiscoverBridge(WebProxy proxy = null)
+        {
+            var client = new RestClient("https://api.nuki.io/");
+            if (proxy != null)
+                client.Proxy = proxy;
+
+            var request = new RestRequest("discover/bridges")
+            {
+                RequestFormat = DataFormat.Json
+            };
+
+            var response = client.Execute<DiscoverResult>(request);
+            if (response.ErrorException != null)
+                throw new ApplicationException("Error retrieving response. Check inner details for more info.",
+                    response.ErrorException);
+
+            var bridge = response.Data.Bridges.FirstOrDefault();
+            if (bridge == null || bridge.Ip.Equals("0.0.0.0")) return null;
+
+            return $"http://{bridge.Ip}:{bridge.Port}";
         }
 
         public T Execute<T>(RestRequest request) where T : new()
         {
-            var client = new RestClient(_baseUrl);
-
-            if (Proxy != null)
-                client.Proxy = Proxy;
-
-            request.RequestFormat = DataFormat.Json;
-
-            if (_hashToken)
+            return _retryPolicy.Execute(() =>
             {
-                var tokenRnr = _random.Next(1000, 9999);
-                var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
-                var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSha256();
+                var client = new RestClient(_baseUrl);
 
-                request.AddQueryParameter("ts", tokenTimestamp, false);
-                request.AddQueryParameter("rnr", tokenRnr.ToString());
-                request.AddQueryParameter("hash", tokenHash);
-            }
-            else
-                request.AddQueryParameter("token", _token);
+                if (Proxy != null)
+                    client.Proxy = Proxy;
 
-            _log.Debug($"Performing {request.Method} request to {client.BuildUri(request)}");
+                request.RequestFormat = DataFormat.Json;
 
-            var response = client.Execute<T>(request);
+                if (_hashToken)
+                {
+                    var tokenRnr = _random.Next(1000, 9999);
+                    var tokenTimestamp = DateTime.UtcNow.ToString("s") + "Z";
+                    var tokenHash = $"{tokenTimestamp},{tokenRnr},{_token}".ToSha256();
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                throw new ApplicationException($"Unauthorized", new Exception(response.Content));
+                    request.AddQueryParameter("ts", tokenTimestamp, false);
+                    request.AddQueryParameter("rnr", tokenRnr.ToString());
+                    request.AddQueryParameter("hash", tokenHash);
+                }
+                else
+                    request.AddQueryParameter("token", _token);
 
-            if (response.ErrorException == null) return response.Data;
+                _log.Debug($"Performing {request.Method} request to {client.BuildUri(request)}");
 
-            throw new ApplicationException("Error retrieving response. Check inner details for more info.", response.ErrorException);
+                var response = client.Execute<T>(request);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    throw new ApplicationException($"Unauthorized", new Exception(response.Content));
+
+                if (response.ErrorException == null) return response.Data;
+
+                throw new ApplicationException("Error retrieving response. Check inner details for more info.",
+                    response.ErrorException);
+            });
         }
 
         /// <summary>
@@ -78,7 +117,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="nukiId"></param>
         /// <returns>LockState</returns>
-        public LockState GetLockstate(int nukiId)
+        public LockState GetLockState(int nukiId)
         {
             var request = new RestRequest("lockState");
             request.AddQueryParameter("nukiId", nukiId.ToString());

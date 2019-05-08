@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Net.Bluewalk.NukiBridge2Mqtt")]
+[assembly: AssemblyTitle("Net.Bluewalk.NukiBridge2Mqtt,Console")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b98c6cf0-cdae-4cd9-b69a-83ee4d898c28")]
+[assembly: Guid("13c2a20d-c566-4026-8f2c-28222ac9e946")]
