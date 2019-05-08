@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 
@@ -27,7 +29,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
             _log.Info("Starting logic");
             try
             {
-                Configuration.Instance.Read("config.yml");
+                Configuration.Instance.Read(
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
 
                 _logic = new NukiBridge2MqttLogic();
                 await _logic.Start();
