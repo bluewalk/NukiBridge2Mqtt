@@ -18,6 +18,7 @@
     <PackageReference Include="Net.Bluewalk.log4net.RollingFileByMaxAgeAppender" Version="1.0.1" />
     <PackageReference Include="Polly" Version="7.1.0" />
     <PackageReference Include="RestSharp" Version="106.6.9" />
+    <PackageReference Include="YamlDotNet" Version="6.0.0" />
   </ItemGroup>
 
 </Project>
