@@ -2,9 +2,10 @@
 using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.ServiceProcess;
+using System.Configuration.Install;
+using System.IO;
+using System.Reflection;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
@@ -76,7 +77,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
             try
             {
-                Configuration.Instance.Read("config.yml");
+                Configuration.Instance.Read(
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
 
                 _logic = new NukiBridge2MqttLogic();
                 await _logic.Start();
@@ -91,18 +93,6 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
         {
             _log.Info("Stopping service");
             await _logic?.Stop();
-        }
-
-        private static IPAddress LocalIpAddress()
-        {
-            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-                return null;
-
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-
-            return host
-                .AddressList
-                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 }
