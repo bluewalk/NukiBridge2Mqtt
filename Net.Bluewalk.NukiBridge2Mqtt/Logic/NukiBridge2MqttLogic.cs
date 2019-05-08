@@ -1,6 +1,5 @@
 ﻿using log4net;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
@@ -16,7 +15,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     public class NukiBridge2MqttLogic
     {
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
+        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridge2MqttLogic));
 
         private readonly IManagedMqttClient _mqttClient;
         private readonly string _mqttHost;
@@ -347,7 +346,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             var options = new ManagedMqttClientOptionsBuilder()
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
                 .WithClientOptions(new MqttClientOptionsBuilder()
-                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}")
+                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}-{Environment.UserName}")
                     .WithTcpServer(_mqttHost, _mqttPort))
                 .Build();
 
