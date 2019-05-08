@@ -74,18 +74,21 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Net.Bluewalk.NukiBridge2Mqtt\Net.Bluewalk.NukiBridge2Mqtt.csproj">
-      <Project>{dee2ff32-4b6c-47e0-9e7b-f1b6a8ae7df9}</Project>
-      <Name>Net.Bluewalk.NukiBridge2Mqtt</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Service.resx">
+      <DependentUpon>Service.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Net.Bluewalk.NukiBridge2Mqtt\Net.Bluewalk.NukiBridge2Mqtt.csproj">
+      <Project>{511430f6-07ac-497c-8619-96e1ba1f924a}</Project>
+      <Name>Net.Bluewalk.NukiBridge2Mqtt</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

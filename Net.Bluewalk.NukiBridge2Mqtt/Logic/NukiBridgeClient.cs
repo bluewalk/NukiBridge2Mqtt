@@ -19,7 +19,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private readonly string _token;
         private readonly bool _hashToken;
         private readonly Random _random;
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
+        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridgeClient));
         private readonly RetryPolicy _retryPolicy;
 
         public WebProxy Proxy { get; set; }
