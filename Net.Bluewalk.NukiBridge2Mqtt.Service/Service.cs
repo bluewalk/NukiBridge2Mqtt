@@ -1,11 +1,9 @@
-﻿using log4net;
+﻿using System;
+using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
-using System.Configuration;
-using System.Configuration.Install;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.ServiceProcess;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
@@ -76,42 +74,17 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
         {
             _log.Info("Starting service");
 
-            if (!int.TryParse(ConfigurationManager.AppSettings["MQTT_Port"], out var mqttPort))
-                mqttPort = 1883;
-
-            if (!int.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Port"], out var callbackPort))
-                callbackPort = 8080;
-
-            if (!IPAddress.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Address"],
-                out var callbackAddress))
-                callbackAddress = LocalIpAddress();
-
-            if (!bool.TryParse(ConfigurationManager.AppSettings["Bridge_HashToken"], out var hashToken))
-                hashToken = true;
-
-            var bridgeUrl = ConfigurationManager.AppSettings["Bridge_URL"];
-            if (string.IsNullOrEmpty(bridgeUrl))
-                bridgeUrl = NukiBridgeClient.DiscoverBridge();
-
-            if (string.IsNullOrEmpty(bridgeUrl) ||
-                string.IsNullOrEmpty(ConfigurationManager.AppSettings["Bridge_Token"]))
+            try
             {
-                _log.Fatal("No Bridge_URL and/or Bridge_Token defined");
-                return;
+                Configuration.Instance.Read("config.yml");
+
+                _logic = new NukiBridge2MqttLogic();
+                await _logic.Start();
             }
-
-            _logic = new NukiBridge2MqttLogic(
-                ConfigurationManager.AppSettings["MQTT_Host"],
-                mqttPort,
-                ConfigurationManager.AppSettings["MQTT_RootTopic"],
-                callbackAddress,
-                callbackPort,
-                bridgeUrl,
-                ConfigurationManager.AppSettings["Bridge_Token"],
-                hashToken
-            );
-
-            await _logic.Start();
+            catch (Exception e)
+            {
+                _log.Fatal(e.Message, e);
+            }
         }
 
         protected override async void OnStop()
