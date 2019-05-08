@@ -347,7 +347,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             var options = new ManagedMqttClientOptionsBuilder()
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
                 .WithClientOptions(new MqttClientOptionsBuilder()
-                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}")
+                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}-{Environment.UserName}")
                     .WithTcpServer(_mqttHost, _mqttPort))
                 .Build();
 
