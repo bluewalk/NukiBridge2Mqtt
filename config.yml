@@ -1,0 +1,12 @@
+--- # NukiBridge2Mqtt configuration
+bridge:
+  callback:
+    address: # leave empty for auto detection
+    port: # 8080 when left empty
+  url: # http://xxx.xxx.xxx:port, leave empty for auto discovery
+  token: 
+  hash-token: true
+mqtt:
+  host: # localhost if left empty
+  port: # 1883 when left empty
+  root-topic: # nukibridge when left empty

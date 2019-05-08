@@ -1,12 +1,11 @@
-﻿using log4net;
+﻿using System;
+using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
-using System.Configuration;
-using System.Configuration.Install;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Reflection;
 using System.ServiceProcess;
+using System.Configuration.Install;
+using System.IO;
+using System.Reflection;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
@@ -76,51 +75,24 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
         {
             _log.Info("Starting service");
 
-            if (!int.TryParse(ConfigurationManager.AppSettings["MQTT_Port"], out var mqttPort))
-                mqttPort = 1883;
+            try
+            {
+                Configuration.Instance.Read(
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
 
-            if (!int.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Port"], out var callbackPort))
-                callbackPort = 8080;
-
-            if (!IPAddress.TryParse(ConfigurationManager.AppSettings["Bridge_Callback_Address"],
-                out var callbackAddress))
-                callbackAddress = LocalIPAddress();
-
-            if (!bool.TryParse(ConfigurationManager.AppSettings["Bridge_HashToken"], out var hashToken))
-                hashToken = true;
-
-            _logic = new NukiBridge2MqttLogic(
-                ConfigurationManager.AppSettings["MQTT_Host"],
-                mqttPort,
-                ConfigurationManager.AppSettings["MQTT_RootTopic"],
-                callbackAddress,
-                callbackPort,
-                ConfigurationManager.AppSettings["Bridge_URL"],
-                ConfigurationManager.AppSettings["Bridge_Token"],
-                hashToken
-            );
-
-            await _logic.Start();
+                _logic = new NukiBridge2MqttLogic();
+                await _logic.Start();
+            }
+            catch (Exception e)
+            {
+                _log.Fatal(e.Message, e);
+            }
         }
 
         protected override async void OnStop()
         {
             _log.Info("Stopping service");
-            await _logic.Stop();
-        }
-
-        private IPAddress LocalIPAddress()
-        {
-            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-            {
-                return null;
-            }
-
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-
-            return host
-                .AddressList
-                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+            await _logic?.Stop();
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using log4net;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
@@ -9,26 +8,45 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
+using MQTTnet.Client.Options;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Config;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     public class NukiBridge2MqttLogic
     {
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
+        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridge2MqttLogic));
 
-        private readonly IManagedMqttClient _mqttClient;
-        private readonly string _mqttHost;
-        private readonly int _mqttPort;
-        private readonly string _mqttRootTopic;
+        private IManagedMqttClient _mqttClient;
+        private  string _mqttHost;
+        private int _mqttPort;
+        private  string _mqttRootTopic;
+        private  string _bridgeUrl;
+        private  string _bridgeToken;
+        private  bool _hashToken;
 
-        private readonly NukiBridgeClient _nukiBridgeClient;
-        private readonly IPAddress _callbackAddress;
-        private readonly int _callbackPort;
-        private readonly HttpListener _httpListener;
+        private NukiBridgeClient _nukiBridgeClient;
+        private  IPAddress _callbackAddress;
+        private  int _callbackPort;
+        private HttpListener _httpListener;
         private bool _stopHttpListener;
 
         private List<Lock> _locks;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public NukiBridge2MqttLogic()
+        {
+            var config = Configuration.Instance.Config;
+
+            if (config == null) throw new Exception("Config has not yet been read, use Configuration.Instance.Read()");
+
+            Initialize(config.Mqtt.Host, config.Mqtt.Port, config.Mqtt.RootTopic, config.Bridge.Callback.Address,
+                config.Bridge.Callback.Port, config.Bridge.Url, config.Bridge.Token, config.Bridge.HashToken);
+        }
 
         /// <summary>
         /// Constructor
@@ -41,16 +59,45 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
         /// <param name="hashToken"></param>
-        public NukiBridge2MqttLogic(string mqttHost, int mqttPort, string mqttRootTopic, IPAddress callbackAddress,
-            int callbackPort, string bridgeUrl, string token, bool hashToken)
+        public NukiBridge2MqttLogic(string mqttHost, int? mqttPort, string mqttRootTopic, IPAddress callbackAddress,
+            int? callbackPort, string bridgeUrl, string token, bool hashToken)
+        {
+            Initialize(mqttHost, mqttPort, mqttRootTopic, callbackAddress, callbackPort, bridgeUrl, token, hashToken);
+        }
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="mqttHost"></param>
+        /// <param name="mqttPort"></param>
+        /// <param name="mqttRootTopic"></param>
+        /// <param name="callbackAddress"></param>
+        /// <param name="callbackPort"></param>
+        /// <param name="bridgeUrl"></param>
+        /// <param name="token"></param>
+        /// <param name="hashToken"></param>
+        private void Initialize(string mqttHost, int? mqttPort, string mqttRootTopic, IPAddress callbackAddress,
+            int? callbackPort, string bridgeUrl, string token, bool hashToken)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
-            _mqttHost = mqttHost;
-            _mqttPort = mqttPort;
+            _mqttHost = !string.IsNullOrEmpty(mqttHost) ? mqttHost : "localhost";
+            _mqttPort = mqttPort ?? 1883;
+
+            _bridgeUrl = !string.IsNullOrEmpty(bridgeUrl) ? bridgeUrl : NukiBridgeClient.DiscoverBridge();
+            _bridgeToken = token;
+
+            if (string.IsNullOrEmpty(_bridgeUrl) ||
+                string.IsNullOrEmpty(_bridgeToken))
+                throw new Exception("No Bridge_URL and/or Bridge_Token defined");
+
+            _hashToken = hashToken;
+
+            _callbackAddress = callbackAddress ?? LocalIpAddress();
+            _callbackPort = callbackPort ?? 8080;
 
             _mqttClient = new MqttFactory().CreateManagedMqttClient();
-            _mqttClient.ApplicationMessageReceived += MqttClientOnApplicationMessageReceived;
-            _mqttClient.Connected += (sender, args) =>
+            _mqttClient.UseApplicationMessageReceivedHandler(MqttClientOnApplicationMessageReceived);
+            _mqttClient.UseConnectedHandler(e =>
             {
                 _log.Info("MQTT: Connected");
 
@@ -58,18 +105,20 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 SubscribeTopic("reset");
                 SubscribeTopic("reboot");
                 SubscribeTopic("fw-upgrade");
-            };
-            _mqttClient.ConnectingFailed += (sender, args) =>
-                _log.Error($"MQTT: Unable to connect ({args.Exception.Message})");
-            _mqttClient.Disconnected += (sender, args) => _log.Warn("MQTT: Disconnected");
+            });
+            _mqttClient.UseDisconnectedHandler(e =>
+            {
+                if (e.ClientWasConnected)
+                    _log.Warn($"MQTT: Disconnected ({e.Exception?.Message ?? "clean"})");
+                else
+                    _log.Error($"MQTT: Unable to connect ({e.Exception?.Message ?? "clean"})");
+            });
 
-            _nukiBridgeClient = new NukiBridgeClient(bridgeUrl, token, hashToken);
+            _nukiBridgeClient = new NukiBridgeClient(_bridgeUrl, _bridgeToken, _hashToken);
 
-            _callbackAddress = callbackAddress;
-            _callbackPort = callbackPort;
             _httpListener = new HttpListener
             {
-                Prefixes = { $"http://+:{callbackPort}/" }
+                Prefixes = { $"http://+:{_callbackPort}/" }
             };
 
             _locks = new List<Lock>();
@@ -267,7 +316,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MqttClientOnApplicationMessageReceived(object sender, MqttApplicationMessageReceivedEventArgs e)
+        private void MqttClientOnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
         {
             var topic = e.ApplicationMessage.Topic.ToUpper().Split('/');
             var message = e.ApplicationMessage.ConvertPayloadToString();
@@ -342,7 +391,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             var options = new ManagedMqttClientOptionsBuilder()
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
                 .WithClientOptions(new MqttClientOptionsBuilder()
-                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}")
+                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}-{Environment.UserName}")
                     .WithTcpServer(_mqttHost, _mqttPort))
                 .Build();
 
@@ -364,9 +413,21 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         public async Task Stop()
         {
             _stopHttpListener = true;
-            _httpListener.Stop();
+            _httpListener?.Stop();
 
-            await _mqttClient.StopAsync();
+            await _mqttClient?.StopAsync();
+        }
+
+        private static IPAddress LocalIpAddress()
+        {
+            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                return null;
+
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 }
