@@ -98,3 +98,8 @@ Log settings can be changed in `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config`
 ### Console app (.NET Core)
 1. Stop the console app by pressing any key
 2. Delete files
+
+### Docker
+1. Stop the running container
+2. Delete container if not started with `--rm`
+3. Delete image
