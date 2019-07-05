@@ -43,8 +43,6 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
 
                     appenders.ToList().ForEach(a =>
                     {
-                        _log.Info(a.GetType());
-
                         if (a is FileAppender)
                         {
                             _log.Info($"Changing filepath for appender '{a.Name}' to /tmp");
