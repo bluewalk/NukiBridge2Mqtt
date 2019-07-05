@@ -5,6 +5,4 @@ COPY log4net.config /app
 
 WORKDIR /app
 
-EXPOSE 8080
-
 ENTRYPOINT ["dotnet", "Net.Bluewalk.NukiBridge2Mqtt.Console.dll", "docker"]
