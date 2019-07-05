@@ -20,16 +20,16 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridge2MqttLogic));
 
         private IManagedMqttClient _mqttClient;
-        private  string _mqttHost;
+        private string _mqttHost;
         private int _mqttPort;
-        private  string _mqttRootTopic;
-        private  string _bridgeUrl;
-        private  string _bridgeToken;
-        private  bool _hashToken;
+        private string _mqttRootTopic;
+        private string _bridgeUrl;
+        private string _bridgeToken;
+        private bool _hashToken;
 
         private NukiBridgeClient _nukiBridgeClient;
-        private  IPAddress _callbackAddress;
-        private  int _callbackPort;
+        private string _callbackAddress;
+        private int _callbackPort;
         private HttpListener _httpListener;
         private bool _stopHttpListener;
 
@@ -42,7 +42,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         {
             var config = Configuration.Instance.Config;
 
-            if (config == null) throw new Exception("Config has not yet been read, use Configuration.Instance.Read()");
+            if (config == null) throw new Exception("Config has not yet been read, use Configuration.Instance.FromYaml() or FromEnvironment()");
 
             Initialize(config.Mqtt.Host, config.Mqtt.Port, config.Mqtt.RootTopic, config.Bridge.Callback.Address,
                 config.Bridge.Callback.Port, config.Bridge.Url, config.Bridge.Token, config.Bridge.HashToken);
@@ -59,7 +59,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
         /// <param name="hashToken"></param>
-        public NukiBridge2MqttLogic(string mqttHost, int? mqttPort, string mqttRootTopic, IPAddress callbackAddress,
+        public NukiBridge2MqttLogic(string mqttHost, int? mqttPort, string mqttRootTopic, string callbackAddress,
             int? callbackPort, string bridgeUrl, string token, bool hashToken)
         {
             Initialize(mqttHost, mqttPort, mqttRootTopic, callbackAddress, callbackPort, bridgeUrl, token, hashToken);
@@ -76,7 +76,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
         /// <param name="hashToken"></param>
-        private void Initialize(string mqttHost, int? mqttPort, string mqttRootTopic, IPAddress callbackAddress,
+        private void Initialize(string mqttHost, int? mqttPort, string mqttRootTopic, string callbackAddress,
             int? callbackPort, string bridgeUrl, string token, bool hashToken)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
@@ -92,7 +92,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             _hashToken = hashToken;
 
-            _callbackAddress = callbackAddress ?? LocalIpAddress();
+            _callbackAddress = callbackAddress ?? LocalIpAddress().ToString();
             _callbackPort = callbackPort ?? 8080;
 
             _mqttClient = new MqttFactory().CreateManagedMqttClient();
