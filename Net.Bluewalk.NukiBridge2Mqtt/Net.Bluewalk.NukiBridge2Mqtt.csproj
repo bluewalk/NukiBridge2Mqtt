@@ -13,12 +13,12 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="MQTTnet" Version="3.0.0" />
-    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.0" />
+    <PackageReference Include="MQTTnet" Version="3.0.5" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.5" />
     <PackageReference Include="Net.Bluewalk.log4net.RollingFileByMaxAgeAppender" Version="1.0.1" />
     <PackageReference Include="Polly" Version="7.1.0" />
-    <PackageReference Include="RestSharp" Version="106.6.9" />
-    <PackageReference Include="YamlDotNet" Version="6.0.0" />
+    <PackageReference Include="RestSharp" Version="106.6.10" />
+    <PackageReference Include="YamlDotNet" Version="6.1.1" />
   </ItemGroup>
 
 </Project>
