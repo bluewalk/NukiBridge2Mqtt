@@ -65,6 +65,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\config.yml">
+      <Link>config.yml</Link>
+    </None>
     <None Include="..\log4net.config">
       <Link>log4net.config</Link>
     </None>

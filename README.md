@@ -8,9 +8,22 @@ Extract the release build to a folder and run `Net.Bluewalk.NukiBridge2Mqtt.Serv
 ### Console app (.NET Core)
 Copy files to a directory and update [configuration](#configuration). You can optionally create a startup script to always run the console at boot.
 
----
+### Docker image
+Run the docker image as followed
+```
+docker run -d --name nukibridge2mqtt bluewalk/nukibridge2mqtt [-e ...]
+```
+You can specify configuration items using environment variables as displayed below, e.g.
+```
+docker run -d --name nukibridge2mqtt bluewalk/nukibridge2mqtt -e BRIDGE_TOKEN=123abc -e MQTT_HOST=192.168.1.2
+```
 
-## Configuration
+You can alter the `log4net` settings by mapping a local `log4net.config` file to `/app/log4.net.config`, e.g.
+```
+docker run -d --name nukibridge2mqtt bluewalk/nukibridge2mqtt [-e ...] -v [configfile]:/app/log4net.config
+```
+
+## Configuration (non-docker)
 Edit the `config.yml` file and set the following settings accordingly under 
 ```yml
 bridge:
@@ -26,16 +39,16 @@ mqtt:
   root-topic: # nukibridge when left empty
 ```
 
-| Configuration setting | Description | Default when empty |
-|-|-|-|
-| bridge`:`callback`:`address | IP Address for the Nuki Bridge callbacks | Auto detection |
-| bridge`:`callback`:`port | Port for the Nuki Bridge callbacks | `8080` |
-| bridge`:`url | Url of your bridge (http://xxx.xxx.xxx:port) | Auto discovery |
-| bridge`:`token | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
-| bridge`:`hash-token | Hash the token on requests to ensure safety | true |
-| mqtt`:`host | IP address / DNS of the MQTT broker | - |
-| mqtt`:`port | Port of the MQTT broker | `1883` |
-| mqtt`:`root-topic | This text will be prepended to the MQTT Topic | `nukibridge` |
+| Configuration setting | Environment variable (docker) | Description | Default when empty |
+|-|-|-|-|
+| bridge`:`callback`:`address | BRIDGE_CALLBACK_ADDRESS | IP address / DNS for the Nuki Bridge callbacks | Auto detection |
+| bridge`:`callback`:`port | BRIDGE_CALLBACK_PORT | Port for the Nuki Bridge callbacks | `8080` |
+| bridge`:`url | BRIDGE_URL | Url of your bridge (http://xxx.xxx.xxx:port) | Auto discovery |
+| bridge`:`token | BRIDGE_TOKEN | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
+| bridge`:`hash-token | BRIDGE_HASH_TOKEN | Hash the token on requests to ensure safety | true |
+| mqtt`:`host | MQTT_HOST | IP address / DNS of the MQTT broker | - |
+| mqtt`:`port | MQTT_PORT | Port of the MQTT broker | `1883` |
+| mqtt`:`root-topic | MQTT_ROOT_TOPIC | This text will be prepended to the MQTT Topic | `nukibridge` |
 
 ---
 
@@ -85,3 +98,8 @@ Log settings can be changed in `Net.Bluewalk.NukiBridge2Mqtt.Service.exe.config`
 ### Console app (.NET Core)
 1. Stop the console app by pressing any key
 2. Delete files
+
+### Docker
+1. Stop the running container
+2. Delete container if not started with `--rm`
+3. Delete image
