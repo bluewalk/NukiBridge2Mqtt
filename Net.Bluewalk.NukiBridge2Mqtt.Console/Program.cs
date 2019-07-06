@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using log4net;
+using log4net.Appender;
+using log4net.Repository.Hierarchy;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Console
@@ -11,7 +14,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
         static void Main(string[] args)
         {
             var program = new ConsoleProgram();
-            program.Start();
+            program.Start(args.FirstOrDefault()?.Equals("docker") == true);
 
             System.Console.ReadLine();
 
@@ -24,13 +27,36 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
         private readonly ILog _log = LogManager.GetLogger(typeof(ConsoleProgram));
         private NukiBridge2MqttLogic _logic;
 
-        public async void Start()
+        public async void Start(bool isDocker = false)
         {
             _log.Info("Starting logic");
             try
             {
-                Configuration.Instance.Read(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
+                if (isDocker)
+                {
+                    Configuration.Instance.FromEnvironment();
+
+                    _log.Info("Running in docker container, changing some settings");
+
+                    var repo = LogManager.GetRepository(Assembly.GetEntryAssembly()) as Hierarchy;
+                    var appenders = repo.GetAppenders();
+
+                    appenders.ToList().ForEach(a =>
+                    {
+                        if (a is FileAppender)
+                        {
+                            _log.Info($"Changing filepath for appender '{a.Name}' to /tmp");
+
+                            ((FileAppender) a).File = Path.Combine("/tmp", Path.GetFileName(((FileAppender) a).File));
+                        }
+                    });
+                }
+                else
+                    Configuration.Instance.FromYaml(
+                        Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
+
+                _log.Debug("Used configuration:");
+                _log.Debug(Configuration.Instance.ToYaml());
 
                 _logic = new NukiBridge2MqttLogic();
                 await _logic.Start();

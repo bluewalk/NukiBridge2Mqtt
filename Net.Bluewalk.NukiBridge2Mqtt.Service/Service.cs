@@ -77,7 +77,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
             try
             {
-                Configuration.Instance.Read(
+                Configuration.Instance.FromYaml(
                     Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
 
                 _logic = new NukiBridge2MqttLogic();

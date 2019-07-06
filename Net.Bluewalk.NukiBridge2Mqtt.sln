@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		AssemblyVersionInfo.cs = AssemblyVersionInfo.cs
 		config.yml = config.yml
+		Dockerfile = Dockerfile
 		log4net.config = log4net.config
 	EndProjectSection
 EndProject
@@ -14,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Net.Bluewalk.NukiBridge2Mqt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Net.Bluewalk.NukiBridge2Mqtt", "Net.Bluewalk.NukiBridge2Mqtt\Net.Bluewalk.NukiBridge2Mqtt.csproj", "{511430F6-07AC-497C-8619-96E1BA1F924A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Net.Bluewalk.NukiBridge2Mqtt.Console", "Net.Bluewalk.NukiBridge2Mqtt.Console\Net.Bluewalk.NukiBridge2Mqtt.Console.csproj", "{F5F49C98-9611-45FB-B1E0-942BAA70DB84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Net.Bluewalk.NukiBridge2Mqtt.Console", "Net.Bluewalk.NukiBridge2Mqtt.Console\Net.Bluewalk.NukiBridge2Mqtt.Console.csproj", "{F5F49C98-9611-45FB-B1E0-942BAA70DB84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
