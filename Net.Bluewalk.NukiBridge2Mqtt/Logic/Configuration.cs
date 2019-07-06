@@ -82,7 +82,17 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         {
             var value = Environment.GetEnvironmentVariable(name);
 
-            return string.IsNullOrEmpty(value) ? defaultValue : (T) Convert.ChangeType(value, typeof(T));
+            var t = typeof(T);
+
+            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>))) 
+            {
+                if (value == null) 
+                    return defaultValue; 
+
+                t = Nullable.GetUnderlyingType(t);
+            }
+
+            return string.IsNullOrEmpty(value) ? defaultValue : (T) Convert.ChangeType(value, t);
         }
     }
 }
