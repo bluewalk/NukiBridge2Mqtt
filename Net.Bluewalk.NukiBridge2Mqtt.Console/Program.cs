@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using log4net.Appender;
 using log4net.Repository.Hierarchy;
@@ -11,14 +13,33 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
 {
     class Program
     {
+        // AutoResetEvent to signal when to exit the application.
+        private static readonly AutoResetEvent waitHandle = new AutoResetEvent(false);
+        
         static void Main(string[] args)
         {
             var program = new ConsoleProgram();
-            program.Start(args.FirstOrDefault()?.Equals("docker") == true);
 
-            System.Console.ReadLine();
+            // Fire and forget
+            Task.Run(() =>
+            {
+                program.Start(args.FirstOrDefault()?.Equals("docker") == true);
+                waitHandle.WaitOne();
+            });
 
-            program.Stop();
+            // Handle Control+C or Control+Break
+            System.Console.CancelKeyPress += (o, e) =>
+            {
+                System.Console.WriteLine("Exit");
+
+                program.Stop();
+
+                // Allow the manin thread to continue and exit...
+                waitHandle.Set();
+            };
+
+            // Wait
+            waitHandle.WaitOne();
         }
     }
 
