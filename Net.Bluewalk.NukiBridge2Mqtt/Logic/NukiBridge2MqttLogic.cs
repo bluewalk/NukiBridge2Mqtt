@@ -96,7 +96,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _callbackPort = callbackPort ?? 8080;
 
             _mqttClient = new MqttFactory().CreateManagedMqttClient();
-            _mqttClient.UseApplicationMessageReceivedHandler(MqttClientOnApplicationMessageReceived);
+            _mqttClient.UseApplicationMessageReceivedHandler(e => MqttClientOnApplicationMessageReceived(e));
             _mqttClient.UseConnectedHandler(e =>
             {
                 _log.Info("MQTT: Connected");
