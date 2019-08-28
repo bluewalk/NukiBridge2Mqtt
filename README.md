@@ -37,6 +37,8 @@ mqtt:
   host: # localhost if left empty
   port: # 1883 when left empty
   root-topic: # nukibridge when left empty
+  username:
+  password:
 ```
 
 | Configuration setting | Environment variable (docker) | Description | Default when empty |
@@ -49,6 +51,8 @@ mqtt:
 | mqtt`:`host | MQTT_HOST | IP address / DNS of the MQTT broker | - |
 | mqtt`:`port | MQTT_PORT | Port of the MQTT broker | `1883` |
 | mqtt`:`root-topic | MQTT_ROOT_TOPIC | This text will be prepended to the MQTT Topic | `nukibridge` |
+| mqtt`:`username | MQTT_USERNAME | Username for client authentication | - |
+| mqtt`:`password | MQTT_PASSWORD | Password for client authentication (requires username to be set) | - |
 
 ---
 
