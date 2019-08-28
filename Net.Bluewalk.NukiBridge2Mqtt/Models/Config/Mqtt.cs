@@ -8,5 +8,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Config
         public int? Port { get; set; }
         [YamlMember(Alias = "root-topic", ApplyNamingConventions = false)]
         public string RootTopic { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }

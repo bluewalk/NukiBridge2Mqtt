@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Config;
 using YamlDotNet.Serialization;
@@ -65,7 +63,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 {
                     Host = GetEnvironmentVariable<string>("MQTT_HOST"),
                     Port = GetEnvironmentVariable<int?>("MQTT_PORT"),
-                    RootTopic = GetEnvironmentVariable<string>("MQTT_ROOT_TOPIC")
+                    RootTopic = GetEnvironmentVariable<string>("MQTT_ROOT_TOPIC"),
+                    Username = GetEnvironmentVariable<string>("MQTT_USERNAME"),
+                    Password = GetEnvironmentVariable<string>("MQTT_PASSWORD")
                 }
             };
 
