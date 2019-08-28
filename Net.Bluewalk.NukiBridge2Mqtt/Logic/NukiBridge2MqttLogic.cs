@@ -388,15 +388,20 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <returns></returns>
         public async Task Start()
         {
-            var options = new ManagedMqttClientOptionsBuilder()
+            var clientOptions = new MqttClientOptionsBuilder()
+                .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}-{Environment.UserName}")
+                .WithTcpServer(_mqttHost, _mqttPort);
+
+            if (!string.IsNullOrEmpty(Configuration.Instance.Config.Mqtt.Username))
+                clientOptions = clientOptions.WithCredentials(Configuration.Instance.Config.Mqtt.Username,
+                    Configuration.Instance.Config.Mqtt.Password);
+
+            var managedOptions = new ManagedMqttClientOptionsBuilder()
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
-                .WithClientOptions(new MqttClientOptionsBuilder()
-                    .WithClientId($"BluewalkNukiBridge2Mqtt-{Environment.MachineName}-{Environment.UserName}")
-                    .WithTcpServer(_mqttHost, _mqttPort))
-                .Build();
+                .WithClientOptions(clientOptions);
 
             _log.Info($"MQTT: Connecting to {_mqttHost}:{_mqttPort}");
-            await _mqttClient.StartAsync(options);
+            await _mqttClient.StartAsync(managedOptions.Build());
 
             _log.Info($"Starting callback listener on {_httpListener.Prefixes.First()}");
             _stopHttpListener = false;

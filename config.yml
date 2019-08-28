@@ -10,3 +10,5 @@ mqtt:
   host: # localhost if left empty
   port: # 1883 when left empty
   root-topic: # nukibridge when left empty
+  username:
+  password:
