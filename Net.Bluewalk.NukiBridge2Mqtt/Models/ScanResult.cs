@@ -1,23 +1,23 @@
 ﻿using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
-using RestSharp.Serializers;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class ScanResult
     {
-        [SerializeAs(Name = "nukiId")]
+        [JsonProperty("nukiId")]
         public long NukiId { get; set; }
 
-        [SerializeAs(Name = "deviceType")]
+        [JsonProperty("deviceType")]
         public DeviceTypeEnum DeviceType { get; set; }
 
-        [SerializeAs(Name = "name")]
+        [JsonProperty("name")]
         public string Name { get; set; }
 
-        [SerializeAs(Name = "rssi")]
+        [JsonProperty("rssi")]
         public long Rssi { get; set; }
 
-        [SerializeAs(Name = "paired")]
+        [JsonProperty("paired")]
         public bool Paired { get; set; }
     }
 }

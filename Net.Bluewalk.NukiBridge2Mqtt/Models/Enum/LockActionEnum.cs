@@ -1,21 +1,16 @@
 ﻿namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Enum
 {
+    /// <summary>
+    /// Lock action
+    ///   [Smartlock]__[Opener]
+    /// </summary>
     public enum LockActionEnum
     {
         Unspecified = 0,
-        Unlock = 1,
-        Lock = 2,
-        Unlatch = 3,
-        LockNGo = 4,
-        LockNGoWithUnlatch = 5
-    }
-
-    public enum LockActionOpenerEnum
-    {
-        ActivateRto = 1,
-        DeactivateRto = 2,
-        ElectricStrikeActuation = 3,
-        ActivateContinuousMode = 4,
-        DeactivateContinuousMode = 5
+        Unlock__ActivateRto = 1,
+        Lock__DeactivateRtok = 2,
+        Unlatch__ElectricStrikeActuation = 3,
+        LockNGo__ActivateContinuousMode = 4,
+        LockNGoWithUnlatch__DeactivateContinuousMode = 5
     }
 }

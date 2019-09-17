@@ -11,7 +11,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using MQTTnet.Client.Options;
-using Net.Bluewalk.NukiBridge2Mqtt.Models.Config;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
@@ -173,12 +172,13 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                     ctx.Response.Close();
 
-                    var @lock = _locks.FirstOrDefault(l => l.NukiId.Equals(callback.nukiId));
+                    var @lock = _locks.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
                     if (@lock == null) return;
 
-                    @lock.LastKnownState.BatteryCritical = callback.batteryCritical;
-                    @lock.LastKnownState.State = (LockStateEnum)callback.state;
-                    @lock.LastKnownState.StateName = callback.stateName;
+                    @lock.LastKnownState.BatteryCritical = callback.BatteryCritical;
+                    @lock.LastKnownState.State = (StateEnum)callback.State;
+                    @lock.LastKnownState.StateName = callback.StateName;
+
                     await PublishLockStatus(@lock);
                 }
                 catch (Exception e)

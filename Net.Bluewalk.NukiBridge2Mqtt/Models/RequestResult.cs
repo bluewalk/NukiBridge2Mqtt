@@ -1,13 +1,13 @@
-﻿using RestSharp.Serializers;
+﻿using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class RequestResult
     {
-        [SerializeAs(Name = "success")]
+        [JsonProperty("success")]
         public bool Success { get; set; }
 
-        [SerializeAs(Name = "message")]
+        [JsonProperty("message")]
         public string Message { get; set; }
     }
 }
