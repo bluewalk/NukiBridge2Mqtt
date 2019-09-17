@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using MQTTnet.Client.Options;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Config;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -33,7 +34,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private HttpListener _httpListener;
         private bool _stopHttpListener;
 
-        private List<Lock> _locks;
+        private List<Device> _locks;
 
         /// <summary>
         /// Constructor
@@ -121,7 +122,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 Prefixes = { $"http://+:{_callbackPort}/" }
             };
 
-            _locks = new List<Lock>();
+            _locks = new List<Device>();
         }
 
         /// <summary>
@@ -234,33 +235,33 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         }
 
         /// <summary>
-        /// Prepare lock (MQTT subscriptions etc)
+        /// Prepare device (MQTT subscriptions etc)
         /// </summary>
-        /// <param name="lock"></param>
+        /// <param name="device"></param>
         /// <returns></returns>
-        private async Task PrepareLock(Lock @lock)
+        private async Task PrepareLock(Device device)
         {
-            _log.Info($"Processing lock {@lock.NukiId}");
+            _log.Info($"Processing device {device.NukiId}");
 
             SubscribeTopic(
-                $"{@lock.NukiId}/lock-action",
-                $"{@lock.NameMqtt}/lock-action");
+                $"{device.NukiId}/device-action",
+                $"{device.NameMqtt}/device-action");
 
-            await PublishLockStatus(@lock);
+            await PublishLockStatus(device);
         }
 
         /// <summary>
-        /// Publishes the lock status to the appropriate topics
+        /// Publishes the device status to the appropriate topics
         /// </summary>
-        /// <param name="lock"></param>
+        /// <param name="device"></param>
         /// <returns></returns>
-        public async Task PublishLockStatus(Lock @lock)
+        public async Task PublishLockStatus(Device device)
         {
-            await Publish($"{@lock.NukiId}/lock-state", @lock.LastKnownState.StateName);
-            await Publish($"{@lock.NameMqtt}/lock-state", @lock.LastKnownState.StateName);
+            await Publish($"{device.NukiId}/device-state", device.LastKnownState.StateName);
+            await Publish($"{device.NameMqtt}/device-state", device.LastKnownState.StateName);
 
-            await Publish($"{@lock.NukiId}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
-            await Publish($"{@lock.NameMqtt}/battery-critical", @lock.LastKnownState.BatteryCritical.ToString());
+            await Publish($"{device.NukiId}/battery-critical", device.LastKnownState.BatteryCritical.ToString());
+            await Publish($"{device.NameMqtt}/battery-critical", device.LastKnownState.BatteryCritical.ToString());
         }
 
         #region MQTT
@@ -329,7 +330,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             /**
              * Topic[0] = _rootTopic
              * Topic[1] = {NukiId} | Discover
-             * Topic[2] = Lock-Action, Reset, Reboot, Fw-Upgrade, Callbacks
+             * Topic[2] = Device-Action, Reset, Reboot, Fw-Upgrade, Callbacks
              */
             try
             {
@@ -367,7 +368,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                                 break;
 
                             default:
-                                _log.Warn($"MQTT: {topic[2]} is not a valid lock topic");
+                                _log.Warn($"MQTT: {topic[2]} is not a valid device topic");
                                 break;
                         }
 

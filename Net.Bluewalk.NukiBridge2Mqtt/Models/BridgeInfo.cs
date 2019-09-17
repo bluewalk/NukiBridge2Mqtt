@@ -1,6 +1,7 @@
 ﻿using RestSharp.Serializers;
 using System;
 using System.Collections.Generic;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
