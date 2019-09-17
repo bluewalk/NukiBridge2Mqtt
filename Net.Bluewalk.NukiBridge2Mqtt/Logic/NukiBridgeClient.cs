@@ -68,7 +68,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         {
             return _retryPolicy.Execute(() =>
             {
-                var client = new RestClient(_baseUrl);
+                var client = new RestClient(_baseUrl)
+                    .UseSerializer(() => new JsonNetSerializer());
 
                 if (Proxy != null)
                     client.Proxy = Proxy;
