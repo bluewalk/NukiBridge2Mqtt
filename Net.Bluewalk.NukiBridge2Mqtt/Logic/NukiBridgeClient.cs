@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Polly;
 using Polly.Retry;
 
@@ -104,16 +105,16 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <summary>
         /// Returns a list of all paired Smart Locks
         /// </summary>
-        /// <returns>List of Lock</returns>
-        public List<Lock> List()
+        /// <returns>List of Device</returns>
+        public List<Device> List()
         {
             var request = new RestRequest("list");
 
-            return Execute<List<Lock>>(request);
+            return Execute<List<Device>>(request);
         }
 
         /// <summary>
-        /// Retrieves and returns the current lock state of a given Smart Lock
+        /// Retrieves and returns the current lock state of a given Smart Device
         /// </summary>
         /// <param name="nukiId"></param>
         /// <returns>LockState</returns>
@@ -126,7 +127,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         }
 
         /// <summary>
-        /// Performs a lock operation on the given Smart Lock
+        /// Performs a lock operation on the given Smart Device
         /// </summary>
         /// <param name="nukiId"></param>
         /// <param name="action"></param>
@@ -143,14 +144,15 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         }
 
         /// <summary>
-        /// Removes the pairing with a given Smart Lock
+        /// Removes the pairing with a given Smart Device
         /// </summary>
         /// <param name="nukiId"></param>
         /// <returns>RequestResult</returns>
-        public RequestResult UnPair(int nukiId)
+        public RequestResult UnPair(int nukiId, DeviceTypeEnum deviceType)
         {
             var request = new RestRequest("unpair");
             request.AddQueryParameter("nukiId", nukiId.ToString());
+            request.AddQueryParameter("deviceType", deviceType.ToString("d"));
 
             return Execute<RequestResult>(request);
         }

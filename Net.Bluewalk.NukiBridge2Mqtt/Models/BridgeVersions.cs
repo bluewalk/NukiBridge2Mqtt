@@ -9,5 +9,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 
         [SerializeAs(Name = "wifiFirmwareVersion")]
         public string WifiFirmwareVersion { get; set; }
+
+        [SerializeAs(Name = "appVersion")]
+        public string AppVersion { get; set; }
     }
 }

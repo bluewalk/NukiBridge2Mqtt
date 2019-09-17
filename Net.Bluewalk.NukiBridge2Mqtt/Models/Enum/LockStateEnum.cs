@@ -1,4 +1,4 @@
-﻿namespace Net.Bluewalk.NukiBridge2Mqtt
+﻿namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Enum
 {
     public enum LockStateEnum
     {
@@ -12,5 +12,16 @@
         Unlatching = 7,
         MotorBlocked = 254,
         Undefined = 255,
+    }
+
+    public enum LockStateOpenerEnum
+    {
+        Untrained = 0,
+        Online = 1,
+        RtoActive = 3,
+        Open = 5,
+        Opening = 7,
+        BootRun = 253,
+        Undefined = 255
     }
 }
