@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Config
+﻿namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Config
 {
     public class Config
     {

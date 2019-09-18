@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
-using RestSharp.Serializers;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class DiscoverResult
     {
-        [SerializeAs(Name ="bridges")]
+        [JsonProperty("bridges")]
         public List<DiscoverBridge> Bridges { get; set; }
 
-        [SerializeAs(Name = "errorCode")]
+        [JsonProperty("errorCode")]
         public int ErrorCode { get; set; }
     }
 }
