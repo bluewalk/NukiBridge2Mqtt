@@ -79,11 +79,11 @@ ___!NOTE: Prepend the root-topic if provided in the config, by default `nukibrid
 | reboot | write | `true` to reboot the bridge |
 | fw-upgrade | write | `true` to immediately check for firmware updates and install it |
 | callbacks | write | `true` to query all registered callbacks and log these to the logfile |
-| {lockId}/lock-state `OR` {lockName}/lock-state | readonly | Contains the current lock state (`Locked`, `Unlocking`, `Unlocked`, `Locking`, `Unlatched`, `UnlockedLockNGo`, `Unlatching`, `MotorBlocked`, `Undefined`) |
-| {lockId}/battery-critical `OR` {lockName}/battery-critical | readonly | `True` or `False` if the battery level is critical |
-| {lockId}/lock-action `OR` {lockName}/lock-action | write | Performs an action on the lock (`Unlock`, `Lock`, `Unlatch`, `LockNGo`, `LockNGoWithUnlatch`) |
+| {deviceId}/lock-state `OR` {deviceName}/lock-state | readonly | Contains the current lock state (`Uncalibrated`, `Locked`, `Unlocking`, `Unlocked`, `Locking`, `Unlatched`, `UnlockedLockNGo`, `Unlatching`, `MotorBlocked`, `Undefined`) or for the opener (`Untrained`, `Online`, `RtoActive`, `Open`, `Opening`, `BootRun`, `Undefined` |
+| {deviceId}/battery-critical `OR` {deviceName}/battery-critical | readonly | `True` or `False` if the battery level is critical |
+| {deviceId}/lock-action `OR` {deviceName}/lock-action | write | Performs an action on the lock (`Unlock`, `Lock`, `Unlatch`, `LockNGo`, `LockNGoWithUnlatch`) or for the opener (`ActivateRto`, `DeactivateRto`, `ElectricStrikeActuation`, `ActivateContinuousMode`, `DeactivateContinuousMode`) |
 
-** Lock name is automatically generated based on the actual Lock Name, eg. `Front door` becomes `front-door`
+** Device name is automatically generated based on the actual Lock Name, eg. `Front door` becomes `front-door`
 
 ---
 
