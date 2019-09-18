@@ -2,15 +2,19 @@
 {
     /// <summary>
     /// Lock action
-    ///   [Smartlock]__[Opener]
     /// </summary>
     public enum LockActionEnum
     {
         Unspecified = 0,
-        Unlock__ActivateRto = 1,
-        Lock__DeactivateRtok = 2,
-        Unlatch__ElectricStrikeActuation = 3,
-        LockNGo__ActivateContinuousMode = 4,
-        LockNGoWithUnlatch__DeactivateContinuousMode = 5
+        Unlock = 1,
+        ActivateRto = 1,
+        Lock = 2,
+        DeactivateRto = 2,
+        Unlatch = 3,
+        ElectricStrikeActuation = 3,
+        LockNGo = 4,
+        ActivateContinuousMode = 4,
+        LockNGoWithUnlatch = 5,
+        DeactivateContinuousMode = 5
     }
 }
