@@ -1,13 +1,16 @@
-﻿using RestSharp.Serializers;
+﻿using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class BridgeVersions
     {
-        [SerializeAs(Name = "firmwareVersion")]
+        [JsonProperty("firmwareVersion")]
         public string FirmwareVersion { get; set; }
 
-        [SerializeAs(Name = "wifiFirmwareVersion")]
+        [JsonProperty("wifiFirmwareVersion")]
         public string WifiFirmwareVersion { get; set; }
+
+        [JsonProperty("appVersion")]
+        public string AppVersion { get; set; }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
-using System.Linq;
 using System.ServiceProcess;
-using System.Configuration.Install;
 using System.IO;
 using System.Reflection;
 

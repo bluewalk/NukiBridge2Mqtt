@@ -1,19 +1,20 @@
-﻿using RestSharp.Serializers;
+﻿using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class LockState
     {
-        [SerializeAs(Name = "state")]
-        public LockStateEnum StateEnum { get; set; }
+        [JsonProperty("state")]
+        public StateEnum State { get; set; }
 
-        [SerializeAs(Name = "stateName")]
+        [JsonProperty("stateName")]
         public string StateName { get; set; }
 
-        [SerializeAs(Name = "batteryCritical")]
+        [JsonProperty("batteryCritical")]
         public bool BatteryCritical { get; set; }
 
-        [SerializeAs(Name = "success")]
+        [JsonProperty("success")]
         public bool Success { get; set; }
     }
 }
