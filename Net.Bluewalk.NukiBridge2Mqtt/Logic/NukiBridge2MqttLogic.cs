@@ -353,10 +353,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                         break;
 
                     default:
-                        var @lock = _devices.FirstOrDefault(l =>
+                        var device = _devices.FirstOrDefault(l =>
                             l.NukiId.ToString().Equals(topic[1]) || l.NameMqtt.Equals(topic[1],
                                 StringComparison.InvariantCultureIgnoreCase));
-                        if (@lock == null) return;
+                        if (device == null) return;
 
                         switch (topic[2])
                         {
@@ -364,7 +364,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                                 Enum.TryParse(message, true, out LockActionEnum action);
                                 if (action == LockActionEnum.Unspecified) return;
 
-                                _nukiBridgeClient.LockAction(@lock.NukiId, action);
+                                _nukiBridgeClient.LockAction(device.NukiId, action);
                                 break;
 
                             default:
