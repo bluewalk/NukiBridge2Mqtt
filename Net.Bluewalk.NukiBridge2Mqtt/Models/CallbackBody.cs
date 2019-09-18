@@ -1,19 +1,26 @@
-﻿using RestSharp.Deserializers;
+﻿using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class CallbackBody
     {
-        [DeserializeAs(Name = "nukiId")]
-        public int nukiId { get; set; }
+        [JsonProperty("nukiId")]
+        public int NukiId { get; set; }
 
-        [DeserializeAs(Name = "state")]
-        public int state { get; set; }
+        [JsonProperty("deviceType")]
+        public DeviceTypeEnum DeviceType { get; set; }
 
-        [DeserializeAs(Name = "stateName")]
-        public string stateName { get; set; }
+        [JsonProperty("mode")]
+        public ModeEnum Mode { get; set; }
+        
+        [JsonProperty("state")]
+        public int State { get; set; }
 
-        [DeserializeAs(Name = "batteryCritical")]
-        public bool batteryCritical { get; set; }
+        [JsonProperty("stateName")]
+        public string StateName { get; set; }
+
+        [JsonProperty("batteryCritical")]
+        public bool BatteryCritical { get; set; }
     }
 }

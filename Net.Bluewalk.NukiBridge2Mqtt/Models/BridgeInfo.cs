@@ -1,30 +1,31 @@
-﻿using RestSharp.Serializers;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class BridgeInfo
     {
-        [SerializeAs(Name = "bridgeType")]
+        [JsonProperty("bridgeType")]
         public BridgeTypEnum BridgeType { get; set; }
 
-        [SerializeAs(Name = "ids")]
+        [JsonProperty("ids")]
         public BridgeIds BridgeIds { get; set; }
 
-        [SerializeAs(Name = "versions")]
+        [JsonProperty("versions")]
         public BridgeVersions BridgeVersions { get; set; }
 
-        [SerializeAs(Name = "uptime")]
+        [JsonProperty("uptime")]
         public long UpTime { get; set; }
 
-        [SerializeAs(Name = "currentTime")]
+        [JsonProperty("currentTime")]
         public DateTimeOffset CurrentTime { get; set; }
 
-        [SerializeAs(Name = "serverConnected")]
+        [JsonProperty("serverConnected")]
         public bool ServerConnected { get; set; }
 
-        [SerializeAs(Name = "scanResults")]
+        [JsonProperty("scanResults")]
         public List<ScanResult> ScanResults { get; set; }
     }
 }
