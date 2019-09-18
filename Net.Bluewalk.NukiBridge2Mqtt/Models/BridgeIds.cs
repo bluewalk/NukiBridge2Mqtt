@@ -1,13 +1,13 @@
-﻿using RestSharp.Serializers;
+﻿using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class BridgeIds
     {
-        [SerializeAs(Name = "hardwareId")]
+        [JsonProperty("hardwareId")]
         public long HardwareId { get; set; }
 
-        [SerializeAs(Name = "serverId")]
+        [JsonProperty("serverId")]
         public long ServerId { get; set; }
     }
 }

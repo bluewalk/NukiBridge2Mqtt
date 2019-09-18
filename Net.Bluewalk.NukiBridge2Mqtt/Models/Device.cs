@@ -1,17 +1,21 @@
 ﻿using System.Text.RegularExpressions;
-using RestSharp.Serializers;
+using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
-    public class Lock
+    public class Device
     {
-        [SerializeAs(Name = "nukiId")]
+        [JsonProperty("nukiId")]
         public int NukiId { get; set; }
 
-        [SerializeAs(Name = "name")]
+        [JsonProperty("deviceType")]
+        public DeviceTypeEnum DeviceType { get; set; }
+
+        [JsonProperty("name")]
         public string Name { get; set; }
 
-        [SerializeAs(Name = "lastKnownState")]
+        [JsonProperty("lastKnownState")]
         public LastKnownState LastKnownState { get; set; }
 
         public string NameMqtt => Regex.Replace(Name, "[^a-zA-Z0-9]+", "-").ToLower();
