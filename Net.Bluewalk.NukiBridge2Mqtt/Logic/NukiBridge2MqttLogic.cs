@@ -2,7 +2,6 @@
 using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +11,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using MQTTnet.Client.Options;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
+using Newtonsoft.Json;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -33,7 +33,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private HttpListener _httpListener;
         private bool _stopHttpListener;
 
-        private List<Device> _locks;
+        private List<Device> _devices;
 
         /// <summary>
         /// Constructor
@@ -121,7 +121,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 Prefixes = { $"http://+:{_callbackPort}/" }
             };
 
-            _locks = new List<Device>();
+            _devices = new List<Device>();
         }
 
         /// <summary>
@@ -167,19 +167,19 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
                 try
                 {
-                    var callback = SimpleJson.DeserializeObject<CallbackBody>(body);
+                    var callback = JsonConvert.DeserializeObject<CallbackBody>(body);
 
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                     ctx.Response.Close();
 
-                    var @lock = _locks.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
+                    var @lock = _devices.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
                     if (@lock == null) return;
 
                     @lock.LastKnownState.BatteryCritical = callback.BatteryCritical;
                     @lock.LastKnownState.State = (StateEnum)callback.State;
                     @lock.LastKnownState.StateName = callback.StateName;
 
-                    await PublishLockStatus(@lock);
+                    await PublishDeviceStatus(@lock);
                 }
                 catch (Exception e)
                 {
@@ -199,8 +199,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             try
             {
-                _locks = _nukiBridgeClient.List();
-                _locks?.ForEach(async l => await PrepareLock(l));
+                _devices = _nukiBridgeClient.List();
+                _devices?.ForEach(async d => await PrepareDevice(d));
             }
             catch (ApplicationException e)
             {
@@ -239,7 +239,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        private async Task PrepareLock(Device device)
+        private async Task PrepareDevice(Device device)
         {
             _log.Info($"Processing device {device.NukiId}");
 
@@ -247,7 +247,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 $"{device.NukiId}/device-action",
                 $"{device.NameMqtt}/device-action");
 
-            await PublishLockStatus(device);
+            await PublishDeviceStatus(device);
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        public async Task PublishLockStatus(Device device)
+        public async Task PublishDeviceStatus(Device device)
         {
             await Publish($"{device.NukiId}/device-state", device.LastKnownState.StateName);
             await Publish($"{device.NameMqtt}/device-state", device.LastKnownState.StateName);
@@ -353,7 +353,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                         break;
 
                     default:
-                        var @lock = _locks.FirstOrDefault(l =>
+                        var @lock = _devices.FirstOrDefault(l =>
                             l.NukiId.ToString().Equals(topic[1]) || l.NameMqtt.Equals(topic[1],
                                 StringComparison.InvariantCultureIgnoreCase));
                         if (@lock == null) return;
