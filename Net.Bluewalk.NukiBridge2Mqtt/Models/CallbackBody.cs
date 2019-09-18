@@ -1,6 +1,5 @@
 ﻿using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Newtonsoft.Json;
-using RestSharp.Deserializers;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
