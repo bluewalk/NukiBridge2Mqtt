@@ -47,7 +47,8 @@ mqtt:
 | bridge`:`callback`:`port | BRIDGE_CALLBACK_PORT | Port for the Nuki Bridge callbacks | `8080` |
 | bridge`:`url | BRIDGE_URL | Url of your bridge (http://xxx.xxx.xxx:port) | Auto discovery |
 | bridge`:`token | BRIDGE_TOKEN | Token to utilize the Nuki Bridge API (check your Nuki App) | - |
-| bridge`:`hash-token | BRIDGE_HASH_TOKEN | Hash the token on requests to ensure safety | true |
+| bridge`:`hash-token | BRIDGE_HASH_TOKEN | Hash the token on requests to ensure safety | `true` |
+| bridge`:`info-interval | BRIDGE_INFO_INTERVAL | The interval in seconds to send bridge info/status | `300` |
 | mqtt`:`host | MQTT_HOST | IP address / DNS of the MQTT broker | - |
 | mqtt`:`port | MQTT_PORT | Port of the MQTT broker | `1883` |
 | mqtt`:`root-topic | MQTT_ROOT_TOPIC | This text will be prepended to the MQTT Topic | `nukibridge` |
