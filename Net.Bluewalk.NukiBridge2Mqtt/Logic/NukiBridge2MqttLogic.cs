@@ -360,7 +360,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
                         switch (topic[2])
                         {
-                            case "LOCK-ACTION":
+                            case "DEVICE-ACTION":
                                 Enum.TryParse(message, true, out LockActionEnum action);
                                 if (action == LockActionEnum.Unspecified) return;
 
