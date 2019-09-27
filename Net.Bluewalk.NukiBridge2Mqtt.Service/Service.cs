@@ -4,6 +4,8 @@ using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 using System.ServiceProcess;
 using System.IO;
 using System.Reflection;
+using System.Configuration.Install;
+using System.Linq;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
