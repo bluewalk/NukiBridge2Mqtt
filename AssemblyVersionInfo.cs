@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("NukiBridge2Mqtt")]
 [assembly: AssemblyCompany("Bluewalk")]
 [assembly: AssemblyProduct("NukiBridge2Mqtt")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCopyright("Copyright ï¿½  2019")]
 [assembly: AssemblyTrademark("Bluewalk")]
 [assembly: AssemblyCulture("")]
 
@@ -26,6 +26,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.3.1.0")]
 
 [assembly: log4net.Config.XmlConfigurator(Watch = true, ConfigFile = "log4net.config")]
