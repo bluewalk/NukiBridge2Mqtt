@@ -9,5 +9,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models.Config
         public string Token { get; set; }
         [YamlMember(Alias = "hash-token", ApplyNamingConventions = false)]
         public bool HashToken { get; set; }
+        [YamlMember(Alias = "info-interval", ApplyNamingConventions =  false)]
+        public int? InfoInterval { get; set; }
     }
 }
