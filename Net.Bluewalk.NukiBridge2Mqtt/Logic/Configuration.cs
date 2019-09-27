@@ -57,7 +57,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     },
                     HashToken = GetEnvironmentVariable<bool>("BRIDGE_HASH_TOKEN"),
                     Token = GetEnvironmentVariable<string>("BRIDGE_TOKEN"),
-                    Url = GetEnvironmentVariable<string>("BRIDGE_URL")
+                    Url = GetEnvironmentVariable<string>("BRIDGE_URL"),
+                    InfoInterval = GetEnvironmentVariable<int?>("BRIDGE_INFO_INTERVAL")
                 },
                 Mqtt = new Mqtt()
                 {
@@ -84,7 +85,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             var t = typeof(T);
 
-            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>))) 
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 if (value == null) 
                     return defaultValue; 
