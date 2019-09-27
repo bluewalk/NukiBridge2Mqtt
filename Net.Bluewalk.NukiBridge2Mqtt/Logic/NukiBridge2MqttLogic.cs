@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Timers;
 using MQTTnet.Client.Options;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Newtonsoft.Json;
@@ -26,12 +27,12 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private string _bridgeUrl;
         private string _bridgeToken;
         private bool _hashToken;
-
         private NukiBridgeClient _nukiBridgeClient;
         private string _callbackAddress;
         private int _callbackPort;
         private HttpListener _httpListener;
         private bool _stopHttpListener;
+        private Timer _infoTimer;
 
         private List<Device> _devices;
 
@@ -42,10 +43,13 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         {
             var config = Configuration.Instance.Config;
 
-            if (config == null) throw new Exception("Config has not yet been read, use Configuration.Instance.FromYaml() or FromEnvironment()");
+            if (config == null)
+                throw new Exception(
+                    "Config has not yet been read, use Configuration.Instance.FromYaml() or Configuration.Instance.FromEnvironment()");
 
             Initialize(config.Mqtt.Host, config.Mqtt.Port, config.Mqtt.RootTopic, config.Bridge.Callback.Address,
-                config.Bridge.Callback.Port, config.Bridge.Url, config.Bridge.Token, config.Bridge.HashToken);
+                config.Bridge.Callback.Port, config.Bridge.Url, config.Bridge.Token, config.Bridge.HashToken,
+                config.Bridge.InfoInterval);
         }
 
         /// <summary>
@@ -59,10 +63,11 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
         /// <param name="hashToken"></param>
+        /// <param name="infoInterval"></param>
         public NukiBridge2MqttLogic(string mqttHost, int? mqttPort, string mqttRootTopic, string callbackAddress,
-            int? callbackPort, string bridgeUrl, string token, bool hashToken)
+            int? callbackPort, string bridgeUrl, string token, bool hashToken, int? infoInterval)
         {
-            Initialize(mqttHost, mqttPort, mqttRootTopic, callbackAddress, callbackPort, bridgeUrl, token, hashToken);
+            Initialize(mqttHost, mqttPort, mqttRootTopic, callbackAddress, callbackPort, bridgeUrl, token, hashToken, infoInterval);
         }
 
         /// <summary>
@@ -76,8 +81,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <param name="bridgeUrl"></param>
         /// <param name="token"></param>
         /// <param name="hashToken"></param>
+        /// <param name="infoInterval"></param>
         private void Initialize(string mqttHost, int? mqttPort, string mqttRootTopic, string callbackAddress,
-            int? callbackPort, string bridgeUrl, string token, bool hashToken)
+            int? callbackPort, string bridgeUrl, string token, bool hashToken, int? infoInterval)
         {
             _mqttRootTopic = !string.IsNullOrEmpty(mqttRootTopic) ? mqttRootTopic : "nukibridge";
             _mqttHost = !string.IsNullOrEmpty(mqttHost) ? mqttHost : "localhost";
@@ -92,9 +98,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             _hashToken = hashToken;
 
-            _callbackAddress = callbackAddress ?? LocalIpAddress().ToString();
-            _callbackPort = callbackPort ?? 8080;
-
+            // Setup MQTT
             _mqttClient = new MqttFactory().CreateManagedMqttClient();
             _mqttClient.UseApplicationMessageReceivedHandler(e => MqttClientOnApplicationMessageReceived(e));
             _mqttClient.UseConnectedHandler(e =>
@@ -116,18 +120,35 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             _nukiBridgeClient = new NukiBridgeClient(_bridgeUrl, _bridgeToken, _hashToken);
 
+            // Setup callback
+            _callbackAddress = callbackAddress ?? LocalIpAddress().ToString();
+            _callbackPort = callbackPort ?? 8080;
+            
             _httpListener = new HttpListener
             {
                 Prefixes = { $"http://+:{_callbackPort}/" }
             };
 
             _devices = new List<Device>();
+
+            // Prevent info interval being set to 0
+            if ((infoInterval ?? 0) == 0)
+                infoInterval = 300;
+                
+            // Setup info interval
+            _infoTimer = new Timer((infoInterval ?? 300) * 1000);
+            _infoTimer.Elapsed += async (sender, args) =>
+            {
+                _infoTimer.Stop();
+                await PublishBridgeInfo();
+                _infoTimer.Start();
+            };
         }
 
         /// <summary>
         /// Starts the callback listener
         /// </summary>
-        public async void HttpListenAsync()
+        private async void HttpListenAsync()
         {
             try
             {
@@ -193,12 +214,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <summary>
         /// Discover locks connected to the bridge
         /// </summary>
-        private void DiscoverLocks()
+        private async void DiscoverLocks()
         {
             _log.Info("Discovering locks on bridge");
 
             try
             {
+                await PublishBridgeInfo();
+                
                 _devices = _nukiBridgeClient.List();
                 _devices?.ForEach(async d => await PrepareDevice(d));
             }
@@ -255,7 +278,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        public async Task PublishDeviceStatus(Device device)
+        private async Task PublishDeviceStatus(Device device)
         {
             await Publish($"{device.NukiId}/device-state", device.LastKnownState.StateName);
             await Publish($"{device.NameMqtt}/device-state", device.LastKnownState.StateName);
@@ -264,8 +287,32 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             await Publish($"{device.NameMqtt}/battery-critical", device.LastKnownState.BatteryCritical.ToString());
         }
 
+        /// <summary>
+        /// Publishes bridge info
+        /// </summary>
+        /// <returns></returns>
+        private async Task PublishBridgeInfo()
+        {
+            var info = _nukiBridgeClient.Info();
+            if (info == null) return;
+
+            await Publish("info", info);
+        }
         #region MQTT
 
+
+        /// <summary>
+        /// Publish a message to an MQTT topic
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="obj"></param>
+        /// <param name="retain"></param>
+        /// <returns></returns>
+        private async Task Publish(string topic, object obj, bool retain = true)
+        {
+            await Publish(topic, JsonConvert.SerializeObject(obj), retain);
+        }
+        
         /// <summary>
         /// Publish a message to an MQTT topic
         /// </summary>
@@ -336,7 +383,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             {
                 switch (topic[1])
                 {
-                    case "DISCOVER":
+                    case "DISCOVER": 
                         DiscoverLocks();
                         break;
                     case "RESET":
@@ -410,6 +457,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             InitializeCallback();
             DiscoverLocks();
+
+            if (_infoTimer.Interval > 0)
+                _infoTimer.Start();
         }
 
         /// <summary>
@@ -418,6 +468,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <returns></returns>
         public async Task Stop()
         {
+            _infoTimer.Stop();
             _stopHttpListener = true;
             _httpListener?.Stop();
 
