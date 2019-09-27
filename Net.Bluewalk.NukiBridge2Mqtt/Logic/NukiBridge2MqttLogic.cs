@@ -169,7 +169,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 }
                 catch (HttpListenerException ex)
                 {
-                    if (ex.ErrorCode == 995) return;
+                    if (ex.ErrorCode == 995) continue;
                 }
 
                 if (ctx == null) continue;
@@ -193,8 +193,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                     ctx.Response.Close();
 
+                    if (callback == null) continue;
+
                     var @lock = _devices.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
-                    if (@lock == null) return;
+                    if (@lock == null) continue;
 
                     @lock.LastKnownState.BatteryCritical = callback.BatteryCritical;
                     @lock.LastKnownState.State = (StateEnum)callback.State;
