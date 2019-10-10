@@ -6,6 +6,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 {
     public class LastKnownState
     {
+        [JsonProperty("mode")]
+        public ModeEnum Mode { get; set; }
+
         [JsonProperty("state")]
         public StateEnum State { get; set; }
 
