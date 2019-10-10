@@ -195,14 +195,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
                     if (callback == null) continue;
 
-                    var @lock = _devices.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
-                    if (@lock == null) continue;
+                    var device = _devices.FirstOrDefault(l => l.NukiId.Equals(callback.NukiId));
+                    if (device == null) continue;
 
-                    @lock.LastKnownState.BatteryCritical = callback.BatteryCritical;
-                    @lock.LastKnownState.State = (StateEnum)callback.State;
-                    @lock.LastKnownState.StateName = callback.StateName;
+                    device.LastKnownState.BatteryCritical = callback.BatteryCritical;
+                    device.LastKnownState.State = (StateEnum)callback.State;
+                    device.LastKnownState.StateName = callback.StateName;
 
-                    await PublishDeviceStatus(@lock);
+                    await PublishDeviceStatus(device);
                 }
                 catch (Exception e)
                 {
@@ -282,11 +282,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <returns></returns>
         private async Task PublishDeviceStatus(Device device)
         {
-            await Publish($"{device.NukiId}/device-state", device.LastKnownState.StateName);
-            await Publish($"{device.NameMqtt}/device-state", device.LastKnownState.StateName);
+            await Publish($"{device.NukiId}/device-state", device.LastKnownState?.StateName);
+            await Publish($"{device.NameMqtt}/device-state", device.LastKnownState?.StateName);
 
-            await Publish($"{device.NukiId}/battery-critical", device.LastKnownState.BatteryCritical.ToString());
-            await Publish($"{device.NameMqtt}/battery-critical", device.LastKnownState.BatteryCritical.ToString());
+            await Publish($"{device.NukiId}/device-mode", device.LastKnownState?.Mode.ToString());
+            await Publish($"{device.NameMqtt}/device-mode", device.LastKnownState?.Mode.ToString());
+
+            await Publish($"{device.NukiId}/battery-critical", device.LastKnownState?.BatteryCritical.ToString());
+            await Publish($"{device.NameMqtt}/battery-critical", device.LastKnownState?.BatteryCritical.ToString());
         }
 
         /// <summary>

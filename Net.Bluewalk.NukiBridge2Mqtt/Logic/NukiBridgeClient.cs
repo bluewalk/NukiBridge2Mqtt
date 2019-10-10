@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Polly;
 using Polly.Retry;
@@ -96,10 +97,12 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     throw new ApplicationException($"Unauthorized", new Exception(response.Content));
 
-                if (response.ErrorException == null) return response.Data;
+                if (response.ErrorException != null)
+                    throw new ApplicationException("Error retrieving response. Check inner details for more info.",
+                        response.ErrorException);
 
-                throw new ApplicationException("Error retrieving response. Check inner details for more info.",
-                    response.ErrorException);
+                _log.Debug($"Result: {Encoding.UTF8.GetString(response.RawBytes)}");
+                return response.Data;
             });
         }
 
