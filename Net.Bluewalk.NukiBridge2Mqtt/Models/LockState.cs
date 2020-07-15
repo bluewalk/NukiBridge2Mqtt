@@ -16,5 +16,11 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Models
 
         [JsonProperty("success")]
         public bool Success { get; set; }
+
+        [JsonProperty("doorsensorState")]
+        public DoorSensorStateEnum DoorSensorState { get; set; }
+
+        [JsonProperty("doorsensorStateName")]
+        public string DoorSensorStateName { get; set; }
     }
 }
