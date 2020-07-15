@@ -285,8 +285,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             await Publish($"{device.NukiId}/device-state", device.LastKnownState?.StateName);
             await Publish($"{device.NameMqtt}/device-state", device.LastKnownState?.StateName);
             
-            await Publish($"{device.NukiId}/door-state", device.LastKnownState?.DoorSensorStateName );
-            await Publish($"{device.NameMqtt}/door-state", device.LastKnownState?.DoorSensorStateName );
+            await Publish($"{device.NukiId}/door-state", device.LastKnownState?.DoorSensorState.ToString());
+            await Publish($"{device.NameMqtt}/door-state", device.LastKnownState?.DoorSensorState.ToString());
 
             await Publish($"{device.NukiId}/device-mode", device.LastKnownState?.Mode.ToString());
             await Publish($"{device.NameMqtt}/device-mode", device.LastKnownState?.Mode.ToString());
