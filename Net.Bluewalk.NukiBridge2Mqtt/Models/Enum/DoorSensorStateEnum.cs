@@ -5,7 +5,7 @@
     /// </summary>
     public enum DoorSensorStateEnum
     {
-        Unknown = 0,
+        UnknownOpener = 0,
         Deactivated = 1,
         Closed = 2,
         Opened = 3,
