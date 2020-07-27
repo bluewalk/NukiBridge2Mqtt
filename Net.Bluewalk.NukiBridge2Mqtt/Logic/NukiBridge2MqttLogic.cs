@@ -201,6 +201,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     device.LastKnownState.BatteryCritical = callback.BatteryCritical;
                     device.LastKnownState.State = (StateEnum)callback.State;
                     device.LastKnownState.StateName = callback.StateName;
+                    device.LastKnownState.DoorSensorState = callback.DoorSensorState;
+                    device.LastKnownState.DoorSensorStateName = callback.DoorSensorStateName;
+                    device.LastKnownState.Mode = callback.Mode;
 
                     await PublishDeviceStatus(device);
                 }
