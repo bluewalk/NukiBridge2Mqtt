@@ -22,13 +22,13 @@
 
   <ItemGroup>
     <None Include="..\config.yml" Link="config.yml" />
-    <None Include="..\log4net.config" Link="log4net.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.12" />
+    <PackageReference Include="Net.Bluewalk.DotNetEnvironmentExtensions" Version="2020.3.27.1" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
