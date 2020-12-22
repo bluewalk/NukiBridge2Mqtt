@@ -202,6 +202,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     device.LastKnownState.DoorSensorState = callback.DoorSensorState;
                     device.LastKnownState.DoorSensorStateName = callback.DoorSensorStateName;
                     device.LastKnownState.Mode = callback.Mode;
+                    device.LastKnownState.KeypadBatteryCritical = callback.KeypadBatteryCritical;
+                    device.LastKnownState.RingActionState = callback.RingActionState;
+                    device.LastKnownState.RingActionTimestamp = callback.RingActionTimestamp;
+                    device.LastKnownState.Timestamp = DateTimeOffset.Now;
 
                     await PublishDeviceStatus(device);
                 }
@@ -294,6 +298,18 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             await Publish($"{device.NukiId}/battery-critical", device.LastKnownState?.BatteryCritical.ToString());
             await Publish($"{device.NameMqtt}/battery-critical", device.LastKnownState?.BatteryCritical.ToString());
+            
+            await Publish($"{device.NukiId}/keypad-battery-critical", device.LastKnownState?.KeypadBatteryCritical.ToString());
+            await Publish($"{device.NameMqtt}/keypad-battery-critical", device.LastKnownState?.KeypadBatteryCritical.ToString());
+
+            await Publish($"{device.NukiId}/ring-action-state", device.LastKnownState?.RingActionState.ToString());
+            await Publish($"{device.NameMqtt}/ring-action-state", device.LastKnownState?.RingActionState.ToString());
+
+            await Publish($"{device.NukiId}/timestamp", device.LastKnownState?.Timestamp.ToString());
+            await Publish($"{device.NameMqtt}/timestamp", device.LastKnownState?.Timestamp.ToString());
+
+            await Publish($"{device.NukiId}/ring-action-timestamp", device.LastKnownState?.RingActionTimestamp.ToString());
+            await Publish($"{device.NameMqtt}/ring-action-timestamp", device.LastKnownState?.RingActionTimestamp.ToString());
         }
 
         /// <summary>
