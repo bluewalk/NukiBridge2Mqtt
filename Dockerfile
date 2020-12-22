@@ -1,5 +1,5 @@
 # STAGE01 - Build application and its dependencies
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 WORKDIR /app
 
 COPY . ./
@@ -12,7 +12,7 @@ RUN dotnet publish -c Release -o ../out
 RUN rm ../out/*.pdb
 
 # STAGE03 - Create the final image
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2-alpine3.9 AS runtime
+FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine AS runtime
 WORKDIR /app
 COPY --from=publish /app/out ./
 
