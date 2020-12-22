@@ -1,22 +1,36 @@
 ﻿using System;
-using log4net;
+using System.Configuration;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
 using System.ServiceProcess;
 using System.IO;
 using System.Reflection;
-using System.Configuration.Install;
-using System.Linq;
+using Serilog;
+using Serilog.Events;
+using Configuration = Net.Bluewalk.NukiBridge2Mqtt.Logic.Configuration;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 {
     public partial class Service : ServiceBase
     {
-        private readonly ILog _log = LogManager.GetLogger("NukiBridge2Mqtt");
         private NukiBridge2MqttLogic _logic;
 
         public Service()
         {
             InitializeComponent();
+
+            if (!Enum.TryParse(ConfigurationManager.AppSettings["LOG_LEVEL"], true, out LogEventLevel logLevel))
+                logLevel = LogEventLevel.Information;
+
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Debug()
+                .WriteTo.File(
+                    "Net.Bluewalk.NukiBridge2Mqtt.Service.log", 
+                    logLevel, 
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
+                    rollingInterval: RollingInterval.Day
+                ).CreateLogger();
         }
 
         /// <summary>
@@ -73,7 +87,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
 
         protected override async void OnStart(string[] args)
         {
-            _log.Info("Starting service");
+            Log.Information("Starting service");
 
             try
             {
@@ -85,13 +99,13 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Service
             }
             catch (Exception e)
             {
-                _log.Fatal(e.Message, e);
+                Log.Fatal(e.Message, e);
             }
         }
 
         protected override async void OnStop()
         {
-            _log.Info("Stopping service");
+            Log.Information("Stopping service");
             await _logic?.Stop();
         }
     }
