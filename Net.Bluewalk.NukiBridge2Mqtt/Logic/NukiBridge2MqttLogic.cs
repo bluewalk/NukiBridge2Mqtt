@@ -1,5 +1,4 @@
-﻿using log4net;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
 using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using System;
@@ -13,13 +12,12 @@ using System.Timers;
 using MQTTnet.Client.Options;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     public class NukiBridge2MqttLogic
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridge2MqttLogic));
-
         private IManagedMqttClient _mqttClient;
         private string _mqttHost;
         private int _mqttPort;
@@ -103,7 +101,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _mqttClient.UseApplicationMessageReceivedHandler(e => MqttClientOnApplicationMessageReceived(e));
             _mqttClient.UseConnectedHandler(e =>
             {
-                _log.Info("MQTT: Connected");
+                Log.Information("MQTT: Connected");
 
                 SubscribeTopic("discover");
                 SubscribeTopic("reset");
@@ -113,9 +111,9 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             _mqttClient.UseDisconnectedHandler(e =>
             {
                 if (e.ClientWasConnected)
-                    _log.Warn($"MQTT: Disconnected ({e.Exception?.Message ?? "clean"})");
+                    Log.Warning($"MQTT: Disconnected ({e.Exception?.Message ?? "clean"})");
                 else
-                    _log.Error($"MQTT: Unable to connect ({e.Exception?.Message ?? "clean"})");
+                    Log.Error($"MQTT: Unable to connect ({e.Exception?.Message ?? "clean"})");
             });
 
             _nukiBridgeClient = new NukiBridgeClient(_bridgeUrl, _bridgeToken, _hashToken);
@@ -156,7 +154,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
             catch (Exception e)
             {
-                _log.Error("An error occurred wen starting the callback listener", e);
+                Log.Error("An error occurred wen starting the callback listener", e);
                 return;
             }
 
@@ -174,7 +172,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
                 if (ctx == null) continue;
 
-                _log.Info("Received callback from Brigde");
+                Log.Information("Received callback from Brigde");
 
                 var request = ctx.Request;
                 string body;
@@ -184,7 +182,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     body = reader.ReadToEnd();
                 }
 
-                _log.Debug(body);
+                Log.Debug(body);
 
                 try
                 {
@@ -209,7 +207,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 }
                 catch (Exception e)
                 {
-                    _log.Error($"An error occurred while parsing the callback: {body}", e);
+                    Log.Error($"An error occurred while parsing the callback: {body}", e);
                     ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     ctx.Response.Close();
                 }
@@ -221,7 +219,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         private async void DiscoverLocks()
         {
-            _log.Info("Discovering locks on bridge");
+            Log.Information("Discovering locks on bridge");
 
             try
             {
@@ -232,7 +230,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
             catch (ApplicationException e)
             {
-                _log.Error(e.Message, e);
+                Log.Error(e.Message, e);
             }
         }
 
@@ -241,24 +239,24 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         private void InitializeCallback()
         {
-            _log.Info("Requesting registered callbacks");
+            Log.Information("Requesting registered callbacks");
             try
             {
                 var callbacks = _nukiBridgeClient.ListCallbacks().Callbacks;
-                callbacks.ForEach(c => _log.Info($"Registered callback #{c.Id}: {c.Url}"));
+                callbacks.ForEach(c => Log.Information($"Registered callback #{c.Id}: {c.Url}"));
 
                 var callback = new Uri($"http://{_callbackAddress}:{_callbackPort}/");
 
-                _log.Info($"Checking if callback to {callback} has already been registered");
+                Log.Information($"Checking if callback to {callback} has already been registered");
 
                 if (callbacks.Any(c => c.Url.Equals(callback))) return;
 
-                _log.Info($"Not registered, registering {callback}");
+                Log.Information($"Not registered, registering {callback}");
                 _nukiBridgeClient.AddCallback(callback);
             }
             catch (ApplicationException e)
             {
-                _log.Error(e.Message, e);
+                Log.Error(e.Message, e);
             }
         }
 
@@ -269,7 +267,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <returns></returns>
         private async Task PrepareDevice(Device device)
         {
-            _log.Info($"Processing device {device.NukiId}");
+            Log.Information($"Processing device {device.NukiId}");
 
             SubscribeTopic(
                 $"{device.NukiId}/device-action",
@@ -309,8 +307,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
             await Publish("info", info);
         }
-        #region MQTT
 
+        #region MQTT
 
         /// <summary>
         /// Publish a message to an MQTT topic
@@ -338,8 +336,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 #if DEBUG
             topic = $"dev/{topic}";
 #endif
-            _log.Info($"MQTT: Publishing message to {topic}");
-            _log.Debug($"MQTT: Message: {message}");
+            Log.Information($"MQTT: Publishing message to {topic}");
+            Log.Debug($"MQTT: Message: {message}");
 
             var msg = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
@@ -364,7 +362,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 #if DEBUG
                 topic = $"dev/{_mqttRootTopic}/{topic}";
 #endif
-                _log.Info($"MQTT: Subscribing to {topic}");
+                Log.Information($"MQTT: Subscribing to {topic}");
 
                 await _mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
             });
@@ -380,7 +378,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             var topic = e.ApplicationMessage.Topic.ToUpper().Split('/');
             var message = e.ApplicationMessage.ConvertPayloadToString();
 
-            _log.Debug($"Received MQTT message for topic {e.ApplicationMessage.Topic}, Data: {message}");
+            Log.Debug($"Received MQTT message for topic {e.ApplicationMessage.Topic}, Data: {message}");
 #if DEBUG
             // Remove first part "dev"
             topic = topic.Skip(1).ToArray();
@@ -426,7 +424,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                                 break;
 
                             default:
-                                _log.Warn($"MQTT: {topic[2]} is not a valid device topic");
+                                Log.Warning($"MQTT: {topic[2]} is not a valid device topic");
                                 break;
                         }
 
@@ -435,7 +433,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
             }
             catch (Exception ex)
             {
-                _log.Error($"An error occurred processing the MQTT message (Topic {e.ApplicationMessage.Topic}, Message: {message}", ex);
+                Log.Error($"An error occurred processing the MQTT message (Topic {e.ApplicationMessage.Topic}, Message: {message}", ex);
             }
         }
 
@@ -459,10 +457,10 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
                 .WithClientOptions(clientOptions);
 
-            _log.Info($"MQTT: Connecting to {_mqttHost}:{_mqttPort}");
+            Log.Information($"MQTT: Connecting to {_mqttHost}:{_mqttPort}");
             await _mqttClient.StartAsync(managedOptions.Build());
 
-            _log.Info($"Starting callback listener on {_httpListener.Prefixes.First()}");
+            Log.Information($"Starting callback listener on {_httpListener.Prefixes.First()}");
             _stopHttpListener = false;
             HttpListenAsync();
 
@@ -479,7 +477,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// <returns></returns>
         public async Task Stop()
         {
-            _infoTimer.Stop();
+            _infoTimer?.Stop();
             _stopHttpListener = true;
             _httpListener?.Stop();
 

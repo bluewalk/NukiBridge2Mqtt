@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using log4net;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Config;
+using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -9,8 +9,6 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
     public class Configuration
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(Configuration));
-
         private Config _config;
 
         public Config Config => _config;
@@ -23,7 +21,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 
         public void FromYaml(string fileName)
         {
-            _log.Info($"Reading configuration from {fileName}");
+            Log.Information($"Reading configuration from {fileName}");
 
             if (!File.Exists(fileName))
                 throw new FileNotFoundException("Config file not found", fileName);
@@ -39,12 +37,12 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 _config = deserializer.Deserialize<Config>(input);
             }
 
-            _log.Info("Configuration read");
+            Log.Information("Configuration read");
         }
 
         public void FromEnvironment()
         {
-            _log.Info("Reading configuration from Environment variables");
+            Log.Information("Reading configuration from Environment variables");
 
             _config = new Config()
             {
@@ -70,7 +68,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 }
             };
 
-            _log.Info("Configuration read");
+            Log.Information("Configuration read");
         }
 
         public string ToYaml()
