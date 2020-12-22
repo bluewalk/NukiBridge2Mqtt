@@ -420,7 +420,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                                 Enum.TryParse(message, true, out LockActionEnum action);
                                 if (action == LockActionEnum.Unspecified) return;
 
-                                _nukiBridgeClient.LockAction(device.NukiId, action);
+                                _nukiBridgeClient.LockAction(device.NukiId, device.DeviceType, action);
                                 break;
 
                             default:
