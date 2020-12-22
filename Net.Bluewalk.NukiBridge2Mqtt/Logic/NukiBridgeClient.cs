@@ -134,12 +134,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="nukiId"></param>
         /// <param name="action"></param>
+        /// <param name="deviceType"></param>
         /// <param name="noWait"></param>
         /// <returns>LockActionResult</returns>
-        public LockActionResult LockAction(int nukiId, LockActionEnum action, bool noWait = false)
+        public LockActionResult LockAction(int nukiId, DeviceTypeEnum deviceType, LockActionEnum action, bool noWait = false)
         {
             var request = new RestRequest("lockAction");
             request.AddQueryParameter("nukiId", nukiId.ToString());
+            request.AddQueryParameter("deviceType", ((int)deviceType).ToString());
             request.AddQueryParameter("action", ((int)action).ToString());
             request.AddQueryParameter("nowait", noWait ? "1" : "0");
 
