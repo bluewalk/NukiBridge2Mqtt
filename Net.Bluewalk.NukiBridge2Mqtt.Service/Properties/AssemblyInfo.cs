@@ -8,3 +8,4 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("b18814a8-5921-49ce-8b25-1005ac04458f")]
+[assembly: AssemblyDescription("NukiBridge2Mqtt Windows Service")]

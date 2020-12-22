@@ -1,5 +1,4 @@
-﻿using log4net;
-using Net.Bluewalk.NukiBridge2Mqtt.Models;
+﻿using Net.Bluewalk.NukiBridge2Mqtt.Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using System.Text;
 using Net.Bluewalk.NukiBridge2Mqtt.Models.Enum;
 using Polly;
 using Polly.Retry;
+using Serilog;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
 {
@@ -21,7 +21,6 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         private readonly string _token;
         private readonly bool _hashToken;
         private readonly Random _random;
-        private readonly ILog _log = LogManager.GetLogger(typeof(NukiBridgeClient));
         private readonly RetryPolicy _retryPolicy;
 
         public WebProxy Proxy { get; set; }
@@ -38,8 +37,8 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     retryAttempt => TimeSpan.FromSeconds(2 * retryAttempt),
                     (exception, timeSpan, retryCount, context) =>
                 {
-                    _log.Error("Request failed,", exception);
-                    _log.Info($"Retrying (count {retryCount}) ...");
+                    Log.Error("Request failed,", exception);
+                    Log.Information($"Retrying (count {retryCount}) ...");
                 });
         }
 
@@ -90,7 +89,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                 else
                     request.AddQueryParameter("token", _token);
 
-                _log.Debug($"Performing {request.Method} request to {client.BuildUri(request)}");
+                Log.Debug($"Performing {request.Method} request to {client.BuildUri(request)}");
 
                 var response = client.Execute<T>(request);
 
@@ -101,7 +100,7 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
                     throw new ApplicationException("Error retrieving response. Check inner details for more info.",
                         response.ErrorException);
 
-                _log.Debug($"Result: {Encoding.UTF8.GetString(response.RawBytes)}");
+                Log.Debug($"Result: {Encoding.UTF8.GetString(response.RawBytes)}");
                 return response.Data;
             });
         }
@@ -135,12 +134,14 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Logic
         /// </summary>
         /// <param name="nukiId"></param>
         /// <param name="action"></param>
+        /// <param name="deviceType"></param>
         /// <param name="noWait"></param>
         /// <returns>LockActionResult</returns>
-        public LockActionResult LockAction(int nukiId, LockActionEnum action, bool noWait = false)
+        public LockActionResult LockAction(int nukiId, DeviceTypeEnum deviceType, LockActionEnum action, bool noWait = false)
         {
             var request = new RestRequest("lockAction");
             request.AddQueryParameter("nukiId", nukiId.ToString());
+            request.AddQueryParameter("deviceType", ((int)deviceType).ToString());
             request.AddQueryParameter("action", ((int)action).ToString());
             request.AddQueryParameter("nowait", noWait ? "1" : "0");
 

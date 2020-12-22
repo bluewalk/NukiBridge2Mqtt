@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net;
-using log4net.Appender;
-using log4net.Repository.Hierarchy;
+using Net.Bluewalk.DotNetEnvironmentExtensions;
 using Net.Bluewalk.NukiBridge2Mqtt.Logic;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Net.Bluewalk.NukiBridge2Mqtt.Console
 {
@@ -19,6 +21,21 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
         static void Main(string[] args)
         {
             var program = new ConsoleProgram();
+            
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Debug()
+                .WriteTo.Debug()
+                .WriteTo.Console(
+                    EnvironmentExtensions.GetEnvironmentVariable("LOG_LEVEL", LogEventLevel.Information),
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
+                    theme: AnsiConsoleTheme.Code
+                ).CreateLogger();
+
+            var version = FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).ProductVersion;
+            System.Console.WriteLine($"NukiBridge2Mqtt version {version}");
+            System.Console.WriteLine("https://github.com/bluewalk/NukiBridge2Mqtt/\n");
 
             // Fire and forget
             Task.Run(() =>
@@ -45,52 +62,34 @@ namespace Net.Bluewalk.NukiBridge2Mqtt.Console
 
     public class ConsoleProgram
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(ConsoleProgram));
         private NukiBridge2MqttLogic _logic;
 
         public async void Start(bool isDocker = false)
         {
-            _log.Info("Starting logic");
+            Log.Information("Starting logic");
             try
             {
                 if (isDocker)
-                {
                     Configuration.Instance.FromEnvironment();
-
-                    _log.Info("Running in docker container, changing some settings");
-
-                    var repo = LogManager.GetRepository(Assembly.GetEntryAssembly()) as Hierarchy;
-                    var appenders = repo.GetAppenders();
-
-                    appenders.ToList().ForEach(a =>
-                    {
-                        if (a is FileAppender)
-                        {
-                            _log.Info($"Changing filepath for appender '{a.Name}' to /tmp");
-
-                            ((FileAppender) a).File = Path.Combine("/tmp", Path.GetFileName(((FileAppender) a).File));
-                        }
-                    });
-                }
                 else
                     Configuration.Instance.FromYaml(
                         Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "config.yml"));
 
-                _log.Debug("Used configuration:");
-                _log.Debug(Configuration.Instance.ToYaml());
+                Log.Debug("Used configuration:");
+                Log.Debug(Configuration.Instance.ToYaml());
 
                 _logic = new NukiBridge2MqttLogic();
                 await _logic.Start();
             }
             catch (Exception e)
             {
-                _log.Fatal(e.Message, e);
+                Log.Fatal(e.Message, e);
             }
         }
 
         public async void Stop()
         {
-            _log.Info("Stopping logic");
+            Log.Information("Stopping logic");
 
             await _logic?.Stop();
         }
