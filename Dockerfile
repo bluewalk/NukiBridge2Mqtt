@@ -1,5 +1,5 @@
 # STAGE01 - Build application and its dependencies
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim-amd64 AS build
 WORKDIR /app
 
 COPY . ./
